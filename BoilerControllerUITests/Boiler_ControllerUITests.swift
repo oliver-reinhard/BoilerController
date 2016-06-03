@@ -1,6 +1,6 @@
 //
 //  Boiler_ControllerUITests.swift
-//  Boiler ControllerUITests
+//  BoilerControllerUITests
 //
 //  Created by Oliver on 2016-04-07.
 //  Copyright © 2016 Oliver. All rights reserved.
