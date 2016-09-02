@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A71823291D78C475005D9C78 /* ArduinoTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A71823281D78C475005D9C78 /* ArduinoTypes.swift */; };
+		A718232B1D790ADD005D9C78 /* BTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A718232A1D790ADD005D9C78 /* BTService.swift */; };
 		A72D9CBD1CF00941009AAB41 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72D9CBC1CF00941009AAB41 /* Logger.swift */; };
 		A7DF1E861CFFDB08006A5C33 /* Podfile in Resources */ = {isa = PBXBuildFile; fileRef = A7DF1E841CFFDB08006A5C33 /* Podfile */; };
 		A7E88E7D1CFD319700AD652A /* ConnectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E88E7C1CFD319700AD652A /* ConnectionViewController.swift */; };
@@ -40,6 +42,8 @@
 
 /* Begin PBXFileReference section */
 		94C43DA0036DC164A0E4B210 /* Pods-Boiler-Controller.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Boiler-Controller.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Boiler-Controller/Pods-Boiler-Controller.debug.xcconfig"; sourceTree = "<group>"; };
+		A71823281D78C475005D9C78 /* ArduinoTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArduinoTypes.swift; sourceTree = "<group>"; };
+		A718232A1D790ADD005D9C78 /* BTService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BTService.swift; sourceTree = "<group>"; };
 		A72D9CBC1CF00941009AAB41 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A7DF1E841CFFDB08006A5C33 /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		A7E88E7C1CFD319700AD652A /* ConnectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionViewController.swift; sourceTree = "<group>"; };
@@ -130,6 +134,8 @@
 				A7EF1D5A1CB6F7BC00A6C6A6 /* Assets.xcassets */,
 				A7EF1D5C1CB6F7BC00A6C6A6 /* LaunchScreen.storyboard */,
 				A7EF1D5F1CB6F7BC00A6C6A6 /* Info.plist */,
+				A71823281D78C475005D9C78 /* ArduinoTypes.swift */,
+				A718232A1D790ADD005D9C78 /* BTService.swift */,
 			);
 			name = "Boiler-Controller";
 			path = BoilerController;
@@ -351,6 +357,8 @@
 				A7EF1D561CB6F7BC00A6C6A6 /* LogTableViewController.swift in Sources */,
 				A7E88E7D1CFD319700AD652A /* ConnectionViewController.swift in Sources */,
 				A7EF1D521CB6F7BC00A6C6A6 /* AppDelegate.swift in Sources */,
+				A718232B1D790ADD005D9C78 /* BTService.swift in Sources */,
+				A71823291D78C475005D9C78 /* ArduinoTypes.swift in Sources */,
 				A7EF1D541CB6F7BC00A6C6A6 /* MainViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

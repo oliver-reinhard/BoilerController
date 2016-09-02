@@ -9,19 +9,34 @@
 import Foundation
 import UIKit
 import CoreBluetooth
+import SnapKit
 
 class ConnectionViewController: UIViewController, CBCentralManagerDelegate {
     
-    enum ConnectionStatus:Int {
+    //const uint16_t BC_CONTROLLER_SERVICE_ID[] = { 0x4c, 0xef, 0xdd, 0x58, 0xcb, 0x95, 0x44, 0x50, 0x90, 0xfb, 0xf4, 0x04, 0xdc, 0x20, 0x2f, 0x7c};
+    //let boilerControllerServiceUUID = CBUUID(string: "4CEFDD58-CB95-4450-90FB-F404DC202F7C")
+    let boilerControllerAdvertisingUUID = CBUUID(string: "4CEF");
+    
+    enum ConnectionStatus : Int {
         case Idle = 0
         case Scanning
         case Connecting
         case Connected
     }
     
-    private var cm:CBCentralManager?
-    var connectionStatus:ConnectionStatus = ConnectionStatus.Idle
+    private var cm : CBCentralManager?
+    private var peripheral: CBPeripheral?
+    private var connectionStatus : ConnectionStatus = ConnectionStatus.Idle
     
+    var service: BTService? {
+        didSet {
+            if let service = self.service {
+                service.startDiscoveringServices()
+            }
+        }
+    }
+    
+    @IBOutlet weak var startStopScan: UIButton!
     @IBOutlet weak var output: UITextView!
     
     override func viewDidLoad() {
@@ -33,6 +48,17 @@ class ConnectionViewController: UIViewController, CBCentralManagerDelegate {
             output.insertText("CBCentralManager created\n")
             connectionStatus = .Idle
         }
+        
+        startStopScan.snp_makeConstraints { (make) -> Void in make.top.equalTo(40)
+            make.centerX.equalTo(self.view)
+        }
+        output.snp_makeConstraints { (make) -> Void in
+            make.top.equalTo(startStopScan.snp_bottom).offset(40)
+            make.centerX.equalTo(self.view)
+            make.width.equalTo(self.view.snp_width).offset(-20)
+            make.height.greaterThanOrEqualTo(400)
+        }
+
     }
     
     
@@ -42,9 +68,17 @@ class ConnectionViewController: UIViewController, CBCentralManagerDelegate {
     }
     
     
-    @IBAction func connectButton(sender: UIButton) {
-        startScan()
+    @IBAction func scanButtonPressed(sender: UIButton) {
+        if (connectionStatus == .Idle) {
+            startScan()
+            startStopScan.setTitle("Stop", forState: UIControlState.Normal)
+        } else if (connectionStatus == .Scanning || connectionStatus == .Connecting) {
+            stopScan()
+            connectionStatus = .Idle
+            startStopScan.setTitle("Scan", forState: UIControlState.Normal)
+        }
     }
+
     
     func startScan() {
         //Check if Bluetooth is enabled
@@ -53,7 +87,7 @@ class ConnectionViewController: UIViewController, CBCentralManagerDelegate {
             return
         }
         
-        cm!.scanForPeripheralsWithServices(nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
+        cm!.scanForPeripheralsWithServices([boilerControllerAdvertisingUUID], options: nil)
         output.insertText("Started Scan …\n")
         connectionStatus = .Scanning
     }
@@ -71,68 +105,67 @@ class ConnectionViewController: UIViewController, CBCentralManagerDelegate {
         alert.addAction(aaOK)
         self.presentViewController(alert, animated: true, completion: nil)
     }
-
     
-    
-    func connectPeripheral(peripheral:CBPeripheral) {
-        
-        //Check if Bluetooth is enabled
-        if cm?.state == CBCentralManagerState.PoweredOff {
-            onBluetoothDisabled()
-            return
-        }
-        stopScan()
-        
-        //Cancel any current or pending connection to the peripheral
-        if peripheral.state == CBPeripheralState.Connected || peripheral.state == CBPeripheralState.Connecting {
-            cm!.cancelPeripheralConnection(peripheral)
-        }
-        
-        cm!.connectPeripheral(peripheral, options: [CBConnectPeripheralOptionNotifyOnDisconnectionKey: NSNumber(bool:true)])
-        
-        connectionStatus = .Connecting
-        
-        // Start connection timeout timer
-        //connectionTimer = NSTimer.scheduledTimerWithTimeInterval(connectionTimeOutIntvl, target: self, selector: Selector("connectionTimedOut:"), userInfo: nil, repeats: false)
-    }
     
     //
     // MARK: CBCentralManagerDelegate:
     //
     
     func centralManagerDidUpdateState(central: CBCentralManager) {
+        output.insertText("CentralManager: DidUpdateState -> power ")
         if (central.state == .PoweredOn){
-            output.insertText("Notification: centralManagerDidUpdateState -> power ON\n")
+            output.insertText("ON\n")
         } else if (central.state == .PoweredOff){
-            output.insertText("Notification: centralManagerDidUpdateState -> power OFF\n")
+            output.insertText("OFF\n")
         }
     }
     
     func centralManager(central: CBCentralManager, willRestoreState dict: [String : AnyObject]) {
-        output.insertText("Notification: centralManager: willRestoreState\n")
+        output.insertText("CentralManager: willRestoreState\n")
     }
     
     func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
-        output.insertText("Notification: centralManager: didDiscoverPeripheral " + peripheral.name! + "\n")
-        
+        output.insertText("CentralManager: didDiscoverPeripheral \(peripheral.name!))\n")
         connectionStatus = .Connecting
+        
+        if ((peripheral.name == nil) || (peripheral.name == "")) {
+            return
+        }
+        
+        // If not already connected to a peripheral, then connect to this one
+        if ((self.peripheral == nil) || (self.peripheral?.state == CBPeripheralState.Disconnected)) {
+            // Retain the peripheral before trying to connect
+            self.peripheral = peripheral
+            
+            // Reset service
+            self.service = nil
+            
+            central.connectPeripheral(peripheral, options: nil)
+        }
 
     }
     
     func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
-        output.insertText("Notification: centralManager: didConnectPeripheral\n")
-        connectionStatus = .Connected
+        
+        if (peripheral == self.peripheral) {
+            self.service = BTService(initWithPeripheral: peripheral, output: self.output)
+            
+            output.insertText("CentralManager: didConnectPeripheral \(peripheral.name!) \n")
+            connectionStatus = .Connected
+        }
+        stopScan()
+
 
     }
     
     func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        output.insertText("Notification: centralManager: didFailToConnectPeripheral\n")
+        output.insertText("CentralManager: didFailToConnectPeripheral\n")
         connectionStatus = .Idle
 
     }
     
     func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
-        output.insertText("Notification: centralManager: didDisconnectPeripheral\n")
+        output.insertText("CentralManager: didDisconnectPeripheral\n")
         connectionStatus = .Idle
 
     }
