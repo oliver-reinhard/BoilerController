@@ -23,6 +23,7 @@ let boilerControllerServiceUUID = CBUUID(string: "4CEFDD58-CB95-4450-90FB-F404DC
 let boilerControllerAdvertisingUUID = CBUUID(string: "4CEF");
 
 let waterSensorCharUUID = CBUUID(string: "0006")
+let BLECharacteristicChangedNotification = "BLECharacteristicChangedNotification"
 let BLEServiceChangedStatusNotification = "kBLEServiceChangedStatusNotification"
 
 class BTService: NSObject, CBPeripheralDelegate {
@@ -60,7 +61,7 @@ class BTService: NSObject, CBPeripheralDelegate {
     
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
         print("Peripheral: discovered services")
-        let charUuidsForService: [CBUUID] = [waterSensorCharUUID]
+        //let charUuidsForService: [CBUUID] = [waterSensorCharUUID]
         
         if (peripheral != self.peripheral) {
             return
@@ -77,7 +78,7 @@ class BTService: NSObject, CBPeripheralDelegate {
         for service in peripheral.services! {
             print("Peripheral:   - service \(service.UUID)")
             if service.UUID == boilerControllerServiceUUID {
-                peripheral.discoverCharacteristics(charUuidsForService, forService: service)
+                peripheral.discoverCharacteristics(nil, forService: service) // charUuidsForService, forService: service)
                 print("Peripheral: starting to discover characteristics")
             }
         }
@@ -93,38 +94,25 @@ class BTService: NSObject, CBPeripheralDelegate {
         }
         
         if let characteristics = service.characteristics {
-            for characteristic in characteristics {
-                if characteristic.UUID == waterSensorCharUUID {
-                    self.waterSensorCharacteristic = (characteristic)
-                    
-                    print("Peripheral: water sensor found")
-                    
-                    peripheral.readValueForCharacteristic(characteristic)
-                    peripheral.setNotifyValue(true, forCharacteristic: characteristic)
-                    
-                    // Send notification that Bluetooth is connected and all required characteristics are discovered
-                    //self.sendBTServiceNotificationWithIsBluetoothConnected(true)
-                }
-            }
+			for characteristic in characteristics {
+				if characteristic.properties.contains(CBCharacteristicProperties.Read) {
+					peripheral.readValueForCharacteristic(characteristic)
+					// print("Characteristic \(characteristic.UUID): Read")
+				}
+				if characteristic.properties.contains(CBCharacteristicProperties.Notify) {
+					peripheral.setNotifyValue(true, forCharacteristic: characteristic)
+					// print("Characteristic \(characteristic.UUID): Notify")
+				}
+					
+				// Send notification that Bluetooth is connected and all required characteristics are discovered
+				//self.sendBTServiceNotificationWithIsBluetoothConnected(true)
+			}
         }
     }
 	
 	func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic,  error: NSError?) {
-		if characteristic.UUID == waterSensorCharUUID {
-			print("Peripheral: water sensor raw value = \(characteristic.value)")
-			if characteristic.value?.length == 4 {
-				var buf = UnsafeMutablePointer<Int32>.alloc(1)
-				buf.initializeFrom(UnsafeMutablePointer<Int32>((characteristic.value?.bytes)!), count: 1)
-				
-				//var value = [UInt8] (count: 4, repeatedValue : 0) //?  // CFSwapInt32LittleToHost
-				//characteristic.value?.getBytes(value, length: 4)
-				let value = buf[0]
-				let status = value & 0x000F
-				let temp = Double(value >> 8) / 100
-				buf.destroy()
-				print("Peripheral: water sensor: \(temp)°C, status \(status)")
-			}
-		}
+		//print("Peripheral: updated value for \(characteristic.UUID)")
+		NSNotificationCenter.defaultCenter().postNotificationName(BLECharacteristicChangedNotification, object: characteristic, userInfo: nil)
     }
     
     func sendBTServiceNotificationWithIsBluetoothConnected(isBluetoothConnected: Bool) {

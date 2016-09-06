@@ -11,6 +11,8 @@
 		A718232B1D790ADD005D9C78 /* BTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A718232A1D790ADD005D9C78 /* BTService.swift */; };
 		A72D9CBD1CF00941009AAB41 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72D9CBC1CF00941009AAB41 /* Logger.swift */; };
 		A78748121D7CEF5A009BCFF7 /* BTDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A78748111D7CEF5A009BCFF7 /* BTDiscovery.swift */; };
+		A794F5D61D7E703400E5F22B /* BoilerControllerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A794F5D51D7E703400E5F22B /* BoilerControllerModel.swift */; };
+		A795BC1E1D7E202D00E411DC /* BTCharNotificationObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A795BC1D1D7E202D00E411DC /* BTCharNotificationObserver.swift */; };
 		A7DF1E861CFFDB08006A5C33 /* Podfile in Resources */ = {isa = PBXBuildFile; fileRef = A7DF1E841CFFDB08006A5C33 /* Podfile */; };
 		A7E88E7D1CFD319700AD652A /* ConnectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E88E7C1CFD319700AD652A /* ConnectionViewController.swift */; };
 		A7EF1D521CB6F7BC00A6C6A6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EF1D511CB6F7BC00A6C6A6 /* AppDelegate.swift */; };
@@ -47,6 +49,8 @@
 		A718232A1D790ADD005D9C78 /* BTService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BTService.swift; sourceTree = "<group>"; };
 		A72D9CBC1CF00941009AAB41 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A78748111D7CEF5A009BCFF7 /* BTDiscovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BTDiscovery.swift; sourceTree = "<group>"; };
+		A794F5D51D7E703400E5F22B /* BoilerControllerModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoilerControllerModel.swift; sourceTree = "<group>"; };
+		A795BC1D1D7E202D00E411DC /* BTCharNotificationObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BTCharNotificationObserver.swift; sourceTree = "<group>"; };
 		A7DF1E841CFFDB08006A5C33 /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		A7E88E7C1CFD319700AD652A /* ConnectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionViewController.swift; sourceTree = "<group>"; };
 		A7EF1D4E1CB6F7BC00A6C6A6 /* BoilerController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BoilerController.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -139,6 +143,8 @@
 				A71823281D78C475005D9C78 /* ArduinoTypes.swift */,
 				A78748111D7CEF5A009BCFF7 /* BTDiscovery.swift */,
 				A718232A1D790ADD005D9C78 /* BTService.swift */,
+				A795BC1D1D7E202D00E411DC /* BTCharNotificationObserver.swift */,
+				A794F5D51D7E703400E5F22B /* BoilerControllerModel.swift */,
 			);
 			name = "Boiler-Controller";
 			path = BoilerController;
@@ -361,9 +367,11 @@
 				A78748121D7CEF5A009BCFF7 /* BTDiscovery.swift in Sources */,
 				A7E88E7D1CFD319700AD652A /* ConnectionViewController.swift in Sources */,
 				A7EF1D521CB6F7BC00A6C6A6 /* AppDelegate.swift in Sources */,
+				A794F5D61D7E703400E5F22B /* BoilerControllerModel.swift in Sources */,
 				A718232B1D790ADD005D9C78 /* BTService.swift in Sources */,
 				A71823291D78C475005D9C78 /* ArduinoTypes.swift in Sources */,
 				A7EF1D541CB6F7BC00A6C6A6 /* MainViewController.swift in Sources */,
+				A795BC1E1D7E202D00E411DC /* BTCharNotificationObserver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

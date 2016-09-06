@@ -10,11 +10,11 @@ import Foundation
 
 typealias BCTemperature = Int16
 typealias BCMillis = UInt32
-typealias BCStateID = Int16
+typealias BCStateID = Int8
 typealias BCUserCommandID = UInt16
 typealias BCUserCommands = UInt16
 
-enum BCSensorStatus : Int {
+enum BCSensorStatus : Int8 {
     case Initialising = 0x1
     case ID_Auto_Assigned = 0x2
     case ID_Undefined = 0x4
@@ -37,7 +37,7 @@ enum BCControllerState : BCStateID {
 }
 
 enum BCUserCommand : BCUserCommandID {
-    // unused values are commented
+    // values not used by this App are commented
     case None             = 0       // 1
     //case Info_Help        = 0x1     // 2
     //case Info_Stat        = 0x2     // 3
@@ -53,5 +53,20 @@ enum BCUserCommand : BCUserCommandID {
     case Heat_On          = 0x800   // 13  (2048)
     case Heat_Off         = 0x1000  // 14  (4096)
     case Heat_Reset       = 0x2000  // 15  (8192)
+}
+
+enum BCGattCharUUID : String {
+	// status
+	case State 				= "0001" // HEX value!
+	case TimeInState 		= "0002"
+	case TimeHeated 		= "0003"
+	case AcceptedUserCmds 	= "0004"
+	case UserRequest 		= "0005"
+	case WaterSensor 		= "0006"
+	case AmbientSensor 		= "0007"
+	// configuration
+	case TargetTemp 		= "1000"
+	// log
+	case LogEntry 			= "2000"
 }
 

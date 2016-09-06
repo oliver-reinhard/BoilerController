@@ -30,8 +30,7 @@ class ConnectionViewController: UIViewController {
             make.width.equalTo(self.view.snp_width).offset(-20)
             make.height.greaterThanOrEqualTo(400)
         }
-
-    }
+	}
     
     
     override func didReceiveMemoryWarning() {
@@ -46,30 +45,4 @@ class ConnectionViewController: UIViewController {
         }
     }
 
-    /*
-    func startScan() {
-        //Check if Bluetooth is enabled
-        if cm?.state == CBCentralManagerState.PoweredOff {
-            onBluetoothDisabled()
-            return
-        }
-        
-        cm!.scanForPeripheralsWithServices([boilerControllerAdvertisingUUID], options: nil)
-        output.insertText("Started Scan …\n")
-        connectionStatus = .Scanning
-    }
-    
-    func stopScan(){
-        cm?.stopScan()
-    }
-    
-    
-    func onBluetoothDisabled(){
-        //Show alert to enable bluetooth
-        let alert = UIAlertController(title: "Bluetooth disabled", message: "Enable Bluetooth in system settings", preferredStyle: UIAlertControllerStyle.Alert)
-        let aaOK = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default, handler: nil)
-        alert.addAction(aaOK)
-        self.presentViewController(alert, animated: true, completion: nil)
-    }
-    */
 }

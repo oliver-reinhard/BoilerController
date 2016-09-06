@@ -37,6 +37,80 @@ class MainViewController: UIViewController {
     
     @IBOutlet weak var leftButton: UIButton!
     @IBOutlet weak var rightButton: UIButton!
+	
+	
+	class MainViewCharNotificationObserver : BTCharNotificationObserver {
+		
+		let controller : MainViewController
+		
+		init(controller : MainViewController) {
+			self.controller = controller
+		}
+		
+		private func formatTime(millis : BCMillis) -> String {
+			let zero : Character = "0"
+			let separator : Character = ":"
+			let secs = millis / 1000
+			let secPart = secs % 60
+			let mins = secs / 60
+			let minPart = mins % 60
+			let hours = mins / 60
+			var result = hours.description
+			result.append(separator)
+			if (minPart < 10) {
+				result.append(zero)
+			}
+			result.appendContentsOf(minPart.description)
+			result.append(separator)
+			if (secPart < 10) {
+				result.append(zero)
+			}
+			result.appendContentsOf(secPart.description)
+			return result
+		}
+		
+		private func formatTemperature(temperature : Double, printDecimal : Bool) -> String {
+			let unit = "°C"
+			if (printDecimal) {
+				let t = floor(temperature * 10) / 10
+				return t.description + unit
+			} else {
+				let t : Int16 = Int16(temperature)
+				return t.description + unit
+			}
+		}
+		
+		override func stateChanged(newState: BCControllerState) {
+			controller.state?.text = String(newState)
+		}
+		override func timeInStateChanged(time: BCMillis) {
+			controller.timeInState?.text = formatTime(time)
+		}
+		override func timeHeatedChanged(time: BCMillis) {
+			controller.timeHeated?.text = formatTime(time)
+		}
+		override func acceptedCommandsChanged(cmds: BCUserCommands) {
+			super.acceptedCommandsChanged(cmds)  /////////////////////// fix this
+		}
+		override func waterSensorChanged(newTemperature: Double, newStatus: BCSensorStatus) {
+			controller.waterTemp?.text = formatTemperature(newTemperature, printDecimal: true)
+		}
+		override func ambientSensorChanged(newTemperature: Double, newStatus: BCSensorStatus) {
+			controller.airTemp?.text = formatTemperature(newTemperature, printDecimal: true)
+		}
+		override func targetTempChanged(newTemperature: Double) {
+			controller.targetTemp?.text = formatTemperature(newTemperature, printDecimal: false)
+		}
+	}
+	
+	
+	var btCharNotificationObserver : BTCharNotificationObserver!
+	
+	required init?(coder aDecoder: NSCoder) {
+		super.init(coder: aDecoder)
+		btCharNotificationObserver = MainViewCharNotificationObserver(controller: self)
+		NSNotificationCenter.defaultCenter().addObserverForName(BLECharacteristicChangedNotification, object: nil, queue: nil, usingBlock: characteristicValueChanged)
+	}
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -135,7 +209,7 @@ class MainViewController: UIViewController {
             make.centerY.equalTo(leftButton.snp_centerY)
             make.right.equalTo(mainView.snp_right).offset(-40)
         }
-
+		
     }
 
     override func didReceiveMemoryWarning() {
@@ -144,7 +218,7 @@ class MainViewController: UIViewController {
     }
 
     @IBAction func targetTempChanged(sender: UIStepper) {
-        updateTargetTemperature(sender.value)
+		btCharNotificationObserver.targetTempChanged(sender.value)
     }
     
     @IBAction func leftButtonPressed(sender: UIButton) {
@@ -153,72 +227,15 @@ class MainViewController: UIViewController {
     
     @IBAction func rightButtonPressed(sender: UIButton) {
         print("Right")
-    }
-    
-    func updateAmbientTemperature(temperature : Double, status : BCSensorStatus) {
-        airTemp.text = formatTemperature(temperature, printDecimal: true)
-    }
-    
-    func updateWaterTemperature(temperature : Double, status : BCSensorStatus) {
-        waterTemp.text = formatTemperature(temperature, printDecimal: true)
-    }
-    
-    func updateTargetTemperature(temperature : Double) {
-        targetTemp.text = formatTemperature(temperature, printDecimal: false)
-    }
-    
-    func updateState(state : BCControllerState) {
-        self.state.text = state.rawValue.description // !!!!! FIX THIS
-    }
-    
-    func updateTimeInState(millis : BCMillis) {
-        timeInState.text = formatTime(millis)
-    }
-    
-    func updateTimeHeated(millis : BCMillis) {
-        timeHeated.text = formatTime(millis)
-    }
-    
-    func updateTimeToGo(millis : BCMillis) {
-        timeToGo.text = formatTime(millis)
-    }
-    
-    func updateAvailableCommands(commands : BCUserCommands) {
-        
-    }
-    
-    private func formatTime(millis : BCMillis) -> String {
-        let zero : Character = "0"
-        let separator : Character = ":"
-        let secs = millis / 1000
-        let secPart = secs % 60
-        let mins = secs / 60
-        let minPart = mins % 60
-        let hours = mins / 60
-        var result = hours.description
-        result.append(separator)
-        if (minPart < 10) {
-            result.append(zero)
-        }
-        result.appendContentsOf(minPart.description)
-        result.append(separator)
-        if (secPart < 10) {
-            result.append(zero)
-        }
-        result.appendContentsOf(secPart.description)
-        return result
-    }
-    
-    private func formatTemperature(temperature : Double, printDecimal : Bool) -> String {
-        let unit = "°C"
-        if (printDecimal) {
-            let t = floor(temperature * 10) / 10
-            return t.description + unit
-        } else {
-            let t : Int16 = Int16(temperature)
-            return t.description + unit
-        }
-    }
+	}
+	
+	
+	func characteristicValueChanged(notification : NSNotification) {
+		//print("characteristicValueChanged")
+		dispatch_async(dispatch_get_main_queue(), {
+			self.btCharNotificationObserver.characteristicValueChanged(notification)
+		})
+	}
     
 }
 
