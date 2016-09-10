@@ -190,20 +190,12 @@
                                     <action selector="scanButtonPressed:" destination="r5m-dN-TPy" eventType="touchUpInside" id="C5o-3n-rP6"/>
                                 </connections>
                             </button>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" id="j2i-7C-YVz">
-                                <rect key="frame" x="31" y="107" width="247" height="122"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                            </textView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Connection" image="first" id="BXW-I8-rMa"/>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
-                        <outlet property="output" destination="j2i-7C-YVz" id="l74-Se-Lqr"/>
                         <outlet property="startStopScan" destination="wYO-SF-hfT" id="7r2-dw-nQf"/>
                     </connections>
                 </viewController>

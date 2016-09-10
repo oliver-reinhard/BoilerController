@@ -1,5 +1,5 @@
 //
-//  FirstViewController.swift
+//  MainViewController.swift
 //  BoilerController
 //
 //  Created by Oliver on 2016-04-07.
@@ -8,112 +8,50 @@
 
 import UIKit
 
-class MainViewController: UIViewController {
-    
-    @IBOutlet var outerView: UIView!
-    @IBOutlet weak var mainView: UIView!
-    
-    @IBOutlet weak var airLabel: UILabel!
-    @IBOutlet weak var airTemp: UILabel!
-    
-    @IBOutlet weak var waterLabel: UILabel!
-    @IBOutlet weak var waterTemp: UILabel!
-    
-    @IBOutlet weak var targetTempLabel: UILabel!
-    @IBOutlet weak var targetTemp: UILabel!
-    @IBOutlet weak var targetTempStepper: UIStepper!
-    
-    @IBOutlet weak var stateLabel: UILabel!
-    @IBOutlet weak var state: UILabel!
-    @IBOutlet weak var timeInState: UILabel!
-    
-    @IBOutlet weak var timeToGoLabel: UILabel!
-    @IBOutlet weak var timeToGo: UILabel!
-    
-    @IBOutlet weak var timeHeatedLabel: UILabel!
-    @IBOutlet weak var timeHeated: UILabel!
-    
-    @IBOutlet weak var waterSensorFootnote: UILabel!
-    
-    @IBOutlet weak var leftButton: UIButton!
-    @IBOutlet weak var rightButton: UIButton!
+class MainViewController: UIViewController, BCModelContext {
 	
+	var controllerModel : BCModel!
 	
-	class MainViewCharNotificationObserver : BTCharNotificationObserver {
-		
-		let controller : MainViewController
-		
-		init(controller : MainViewController) {
-			self.controller = controller
-		}
-		
-		private func formatTime(millis : BCMillis) -> String {
-			let zero : Character = "0"
-			let separator : Character = ":"
-			let secs = millis / 1000
-			let secPart = secs % 60
-			let mins = secs / 60
-			let minPart = mins % 60
-			let hours = mins / 60
-			var result = hours.description
-			result.append(separator)
-			if (minPart < 10) {
-				result.append(zero)
-			}
-			result.appendContentsOf(minPart.description)
-			result.append(separator)
-			if (secPart < 10) {
-				result.append(zero)
-			}
-			result.appendContentsOf(secPart.description)
-			return result
-		}
-		
-		private func formatTemperature(temperature : Double, printDecimal : Bool) -> String {
-			let unit = "°C"
-			if (printDecimal) {
-				let t = floor(temperature * 10) / 10
-				return t.description + unit
-			} else {
-				let t : Int16 = Int16(temperature)
-				return t.description + unit
-			}
-		}
-		
-		override func stateChanged(newState: BCControllerState) {
-			controller.state?.text = String(newState)
-		}
-		override func timeInStateChanged(time: BCMillis) {
-			controller.timeInState?.text = formatTime(time)
-		}
-		override func timeHeatedChanged(time: BCMillis) {
-			controller.timeHeated?.text = formatTime(time)
-		}
-		override func acceptedCommandsChanged(cmds: BCUserCommands) {
-			super.acceptedCommandsChanged(cmds)  /////////////////////// fix this
-		}
-		override func waterSensorChanged(newTemperature: Double, newStatus: BCSensorStatus) {
-			controller.waterTemp?.text = formatTemperature(newTemperature, printDecimal: true)
-		}
-		override func ambientSensorChanged(newTemperature: Double, newStatus: BCSensorStatus) {
-			controller.airTemp?.text = formatTemperature(newTemperature, printDecimal: true)
-		}
-		override func targetTempChanged(newTemperature: Double) {
-			controller.targetTemp?.text = formatTemperature(newTemperature, printDecimal: false)
-		}
-	}
+	@IBOutlet var outerView: UIView!
+	@IBOutlet weak var mainView: UIView!
 	
+	@IBOutlet weak var airLabel: UILabel!
+	@IBOutlet weak var airTemp: UILabel!
 	
-	var btCharNotificationObserver : BTCharNotificationObserver!
+	@IBOutlet weak var waterLabel: UILabel!
+	@IBOutlet weak var waterTemp: UILabel!
+	
+	@IBOutlet weak var targetTempLabel: UILabel!
+	@IBOutlet weak var targetTemp: UILabel!
+	@IBOutlet weak var targetTempStepper: UIStepper!
+	
+	@IBOutlet weak var stateLabel: UILabel!
+	@IBOutlet weak var state: UILabel!
+	@IBOutlet weak var timeInState: UILabel!
+	
+	@IBOutlet weak var timeToGoLabel: UILabel!
+	@IBOutlet weak var timeToGo: UILabel!
+	
+	@IBOutlet weak var timeHeatedLabel: UILabel!
+	@IBOutlet weak var timeHeated: UILabel!
+	
+	@IBOutlet weak var waterSensorFootnote: UILabel!
+	
+	@IBOutlet weak var leftButton: UIButton!
+	@IBOutlet weak var rightButton: UIButton!
+	
 	
 	required init?(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
-		btCharNotificationObserver = MainViewCharNotificationObserver(controller: self)
-		NSNotificationCenter.defaultCenter().addObserverForName(BLECharacteristicChangedNotification, object: nil, queue: nil, usingBlock: characteristicValueChanged)
+		
 	}
     
     override func viewDidLoad() {
         super.viewDidLoad()
+		
+		guard controllerModel != nil else {
+			fatalError("Expected BCModel to be set")
+		}
         
         let padding = UIEdgeInsetsMake(30, 10, 10, 10)
         let lineSpacing = 15
@@ -177,7 +115,7 @@ class MainViewController: UIViewController {
         
         timeToGo.snp_makeConstraints { (make) -> Void in
             make.top.equalTo(timeInState.snp_bottom).offset(lineSpacing)
-            make.centerX.equalTo(state.snp_centerX)
+			make.right.equalTo(mainView.snp_right)
         }
         
         timeToGoLabel.snp_makeConstraints { (make) -> Void in
@@ -210,6 +148,16 @@ class MainViewController: UIViewController {
             make.right.equalTo(mainView.snp_right).offset(-40)
         }
 		
+		updateState()
+		updateTimeInState()
+		updateTimeHeated()
+		updateTimeToGo()
+		updateAcceptedCommands()
+		updateWaterTemperature()
+		updateAmbientTemperature()
+		updateTargetTemp()
+		
+		controllerModel.addPropertyChangedObserver(propertyValueChanged)
     }
 
     override func didReceiveMemoryWarning() {
@@ -218,7 +166,7 @@ class MainViewController: UIViewController {
     }
 
     @IBAction func targetTempChanged(sender: UIStepper) {
-		btCharNotificationObserver.targetTempChanged(sender.value)
+		controllerModel.targetTemperature.value = sender.value
     }
     
     @IBAction func leftButtonPressed(sender: UIButton) {
@@ -230,12 +178,118 @@ class MainViewController: UIViewController {
 	}
 	
 	
-	func characteristicValueChanged(notification : NSNotification) {
-		//print("characteristicValueChanged")
+	func propertyValueChanged(notification : NSNotification) {
 		dispatch_async(dispatch_get_main_queue(), {
-			self.btCharNotificationObserver.characteristicValueChanged(notification)
+			guard let property = notification.object else {
+				return
+			}
+			//print("propertyValueChanged: \(property)")
+			let model = self.controllerModel
+			
+			if property === model.state {
+				self.updateState()
+			} else if property === model.timeInState {
+				self.updateTimeInState()
+			} else if property === model.timeHeated {
+				self.updateTimeHeated()
+			} else if property === model.acceptedUserCmds {
+				self.updateAcceptedCommands()
+			} else if property === model.waterTemperature || property === model.waterSensorStatus {
+				self.updateWaterTemperature()
+			} else if property === model.ambientTemperature || property === model.ambientSensorStatus {
+				self.updateAmbientTemperature()
+			} else if property === model.targetTemperature {
+				self.updateTargetTemp()
+			} else {
+				print("Unhandled property: \(property)")
+			}
 		})
 	}
-    
+
+	
+	private func formatTime(millis : BCMillis?) -> String {
+		guard millis != nil else {
+			return "0:00:00"
+		}
+		let zero : Character = "0"
+		let separator : Character = ":"
+		let secs = millis! / 1000
+		let secPart = secs % 60
+		let mins = secs / 60
+		let minPart = mins % 60
+		let hours = mins / 60
+		var result = hours.description
+		result.append(separator)
+		if (minPart < 10) {
+			result.append(zero)
+		}
+		result.appendContentsOf(minPart.description)
+		result.append(separator)
+		if (secPart < 10) {
+			result.append(zero)
+		}
+		result.appendContentsOf(secPart.description)
+		return result
+	}
+	
+	private func formatTemperature(temperature : Double?, printDecimal : Bool) -> String {
+		let unit = "°C"
+		guard temperature != nil else {
+			return "--" + unit
+		}
+		if (printDecimal) {
+			let t = floor(temperature! * 10) / 10
+			return t.description + unit
+		} else {
+			let t : Int16 = Int16(temperature!)
+			return t.description + unit
+		}
+	}
+	
+	private func updateState() {
+		state.text = controllerModel.state.value?.display()
+	}
+	
+	private func updateTimeInState() {
+		timeInState.text = formatTime(controllerModel.timeInState.value)
+	}
+	
+	private func updateTimeHeated() {
+		timeHeated.text = formatTime(controllerModel.timeHeated.value)
+	}
+	
+	private func updateTimeToGo() {
+		timeToGo.text = formatTime(nil)
+	}
+	
+	private func updateAcceptedCommands() {
+		//super.acceptedCommands(controllerModel.acceptedUserCmds.value)  /////////////////////// fix this
+	}
+	
+	private func updateWaterTemperature() {
+		guard let status = controllerModel.waterSensorStatus.value else {
+			return
+		}
+		if status == .OK {
+			waterTemp.text = formatTemperature(controllerModel.waterTemperature.value, printDecimal: true)
+		} else {
+			waterTemp.text = status.display()
+		}
+	}
+	
+	private func updateAmbientTemperature() {
+		guard let status = controllerModel.ambientSensorStatus.value else {
+			return
+		}
+		if status == .OK {
+			airTemp.text = formatTemperature(controllerModel.ambientTemperature.value, printDecimal: true)
+		} else {
+			airTemp.text = status.display()
+		}
+	}
+	
+	private func updateTargetTemp() {
+		targetTemp.text = formatTemperature(controllerModel.targetTemperature.value, printDecimal: false)
+	}
 }
 

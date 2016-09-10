@@ -1,41 +1,34 @@
 //
 //  BTService.swift
-//  Boiler-Controller
 //
-//  Created by Oliver on 2016-09-01.
-//  Copyright © 2016 Oliver. All rights reserved.
-//
-//
-//  BTService.swift
-//  Arduino_Servo
-//
-//  Created by Owen L Brown on 10/11/14.
+//  Created by Owen L Brown on 10/11/14 for Arduino_Servo
 //  Copyright (c) 2014 Razeware LLC. All rights reserved.
+//
+//  Adapted and extended by Oliver Reinhard
 //
 
 import Foundation
 import UIKit
 import CoreBluetooth
 
-/* Services & Characteristics UUIDs */
-//const uint16_t BC_CONTROLLER_SERVICE_ID[] = { 0x4c, 0xef, 0xdd, 0x58, 0xcb, 0x95, 0x44, 0x50, 0x90, 0xfb, 0xf4, 0x04, 0xdc, 0x20, 0x2f, 0x7c};
-let boilerControllerServiceUUID = CBUUID(string: "4CEFDD58-CB95-4450-90FB-F404DC202F7C")
-let boilerControllerAdvertisingUUID = CBUUID(string: "4CEF");
+public protocol BTCharacteristicValueObserver {
+	func characteristicValueUpdated(forCharacteristic characteristic : CBCharacteristic)
+}
 
-let waterSensorCharUUID = CBUUID(string: "0006")
-let BLECharacteristicChangedNotification = "BLECharacteristicChangedNotification"
-let BLEServiceChangedStatusNotification = "kBLEServiceChangedStatusNotification"
 
 class BTService: NSObject, CBPeripheralDelegate {
-    var peripheral: CBPeripheral?
-    var waterSensorCharacteristic: CBCharacteristic?
 	
+    private(set) var peripheral: CBPeripheral?
+	private(set) var serviceUUID : CBUUID!
+	private(set) var observer : BTCharacteristicValueObserver?
     
-    init(initWithPeripheral peripheral: CBPeripheral) {
+	init(initWithPeripheral peripheral: CBPeripheral, forService serviceUUID : CBUUID, observedBy observer : BTCharacteristicValueObserver?) {
         super.init()
         
         self.peripheral = peripheral
         self.peripheral?.delegate = self
+		self.serviceUUID = serviceUUID
+		self.observer = observer
     }
     
     deinit {
@@ -43,41 +36,30 @@ class BTService: NSObject, CBPeripheralDelegate {
     }
     
     func startDiscoveringServices() {
-        self.peripheral?.discoverServices([boilerControllerServiceUUID])
+        self.peripheral?.discoverServices([serviceUUID])  // discover this particular service only
         print("Peripheral: starting to discover services")
     }
     
     func reset() {
-        if peripheral != nil {
-            peripheral = nil
-        }
-        
-        // Deallocating therefore send notification
-        self.sendBTServiceNotificationWithIsBluetoothConnected(false)
+        peripheral = nil
     }
 	
 	
     // Mark: - CBPeripheralDelegate
     
     func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
-        print("Peripheral: discovered services")
-        //let charUuidsForService: [CBUUID] = [waterSensorCharUUID]
-        
-        if (peripheral != self.peripheral) {
-            return
-        }
-        
-        if (error != nil) {
-            return
-        }
-        
-        if ((peripheral.services == nil) || (peripheral.services!.count == 0)) {
+		print("Peripheral: discovered service(s)")
+		
+		guard error == nil else {
+			return
+		}
+		
+        guard peripheral == self.peripheral && peripheral.services != nil && peripheral.services!.count > 0 else {
             return
         }
         
         for service in peripheral.services! {
-            print("Peripheral:   - service \(service.UUID)")
-            if service.UUID == boilerControllerServiceUUID {
+            if service.UUID == serviceUUID {
                 peripheral.discoverCharacteristics(nil, forService: service) // charUuidsForService, forService: service)
                 print("Peripheral: starting to discover characteristics")
             }
@@ -85,39 +67,33 @@ class BTService: NSObject, CBPeripheralDelegate {
     }
     
     func peripheral(peripheral: CBPeripheral, didDiscoverCharacteristicsForService service: CBService, error: NSError?) {
-        if (peripheral != self.peripheral) {
-            return
-        }
-        
-        if (error != nil) {
-            return
-        }
-        
+		guard error == nil else {
+			return
+		}
+		
+		guard peripheral == self.peripheral else {
+			return
+		}
+		
         if let characteristics = service.characteristics {
+			print("Peripheral: discovered \(characteristics.count) characteristics")
 			for characteristic in characteristics {
 				if characteristic.properties.contains(CBCharacteristicProperties.Read) {
-					peripheral.readValueForCharacteristic(characteristic)
+					peripheral.readValueForCharacteristic(characteristic) // => async : will call 'didUpdateValueForCharacteristic' with result later
 					// print("Characteristic \(characteristic.UUID): Read")
 				}
 				if characteristic.properties.contains(CBCharacteristicProperties.Notify) {
-					peripheral.setNotifyValue(true, forCharacteristic: characteristic)
+					peripheral.setNotifyValue(true, forCharacteristic: characteristic) // => will call 'didUpdateValueForCharacteristic' when updated
 					// print("Characteristic \(characteristic.UUID): Notify")
 				}
-					
-				// Send notification that Bluetooth is connected and all required characteristics are discovered
-				//self.sendBTServiceNotificationWithIsBluetoothConnected(true)
 			}
         }
     }
 	
 	func peripheral(peripheral: CBPeripheral, didUpdateValueForCharacteristic characteristic: CBCharacteristic,  error: NSError?) {
-		//print("Peripheral: updated value for \(characteristic.UUID)")
-		NSNotificationCenter.defaultCenter().postNotificationName(BLECharacteristicChangedNotification, object: characteristic, userInfo: nil)
+		guard error == nil else {
+			return
+		}
+		observer?.characteristicValueUpdated(forCharacteristic: characteristic)
     }
-    
-    func sendBTServiceNotificationWithIsBluetoothConnected(isBluetoothConnected: Bool) {
-        let connectionDetails = ["isConnected": isBluetoothConnected]
-        NSNotificationCenter.defaultCenter().postNotificationName(BLEServiceChangedStatusNotification, object: self, userInfo: connectionDetails)
-    }
-    
 }

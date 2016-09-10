@@ -12,10 +12,25 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
-
+	
+	private(set) var controllerModel : BCModel!
+	
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        // Override point for customization after application launch.
+		// Override point for customization after application launch.
+		guard let tbc = window?.rootViewController as? UITabBarController else {
+			fatalError("Expected UITabBarController")
+		}
+		guard let viewControllers = tbc.viewControllers else {
+			fatalError("Expected displayed-view controllers")
+		}
+		
+		controllerModel = BCModel()
+		
+		for vc in viewControllers {
+			if var bcModelContext = vc as? BCModelContext {
+				bcModelContext.controllerModel = controllerModel
+			}
+		}
         return true
     }
 

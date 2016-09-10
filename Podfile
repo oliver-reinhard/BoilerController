@@ -3,5 +3,5 @@ platform :ios, '8.0'
 use_frameworks!
 
 target 'Boiler-Controller' do
-  pod 'SnapKit', '~> 0.15.0'
+  pod 'SnapKit', '~> 0.22.0'
 end

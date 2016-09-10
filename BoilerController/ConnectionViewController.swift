@@ -11,24 +11,23 @@ import UIKit
 import CoreBluetooth
 import SnapKit
 
-class ConnectionViewController: UIViewController {
+class ConnectionViewController: UIViewController, BCModelContext {
 	
-	var btDiscovery : BTDiscovery?
+	/* Services & Characteristics UUIDs */
+	//const uint16_t BC_CONTROLLER_SERVICE_ID[] = { 0x4c, 0xef, 0xdd, 0x58, 0xcb, 0x95, 0x44, 0x50, 0x90, 0xfb, 0xf4, 0x04, 0xdc, 0x20, 0x2f, 0x7c};
+	let boilerControllerServiceUUID = CBUUID(string: "4CEFDD58-CB95-4450-90FB-F404DC202F7C")
+	let boilerControllerAdvertisingUUID = CBUUID(string: "4CEF");
+	
+	var controllerModel : BCModel!
+	private var btDiscovery : BTDiscovery!
 	
     @IBOutlet weak var startStopScan: UIButton!
-    @IBOutlet weak var output: UITextView!
 	
     override func viewDidLoad() {
         super.viewDidLoad()
 		
         startStopScan.snp_makeConstraints { (make) -> Void in make.top.equalTo(40)
             make.centerX.equalTo(self.view)
-        }
-        output.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(startStopScan.snp_bottom).offset(40)
-            make.centerX.equalTo(self.view)
-            make.width.equalTo(self.view.snp_width).offset(-20)
-            make.height.greaterThanOrEqualTo(400)
         }
 	}
     
@@ -41,7 +40,7 @@ class ConnectionViewController: UIViewController {
 	
     @IBAction func scanButtonPressed(sender: UIButton) {
 		if btDiscovery == nil {
-			btDiscovery = BTDiscovery(output: output)
+			btDiscovery = BTDiscovery(forService: boilerControllerServiceUUID, advertisingUUID: boilerControllerAdvertisingUUID, observedBy: controllerModel)
         }
     }
 

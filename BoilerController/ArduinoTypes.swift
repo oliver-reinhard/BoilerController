@@ -8,21 +8,36 @@
 
 import Foundation
 
-typealias BCTemperature = Int16
-typealias BCMillis = UInt32
-typealias BCStateID = Int8
-typealias BCUserCommandID = UInt16
-typealias BCUserCommands = UInt16
+public typealias BCTemperature = Int16
+public typealias BCMillis = UInt32
+public typealias BCStateID = Int8
+public typealias BCUserCommandID = UInt16
+public typealias BCUserCommands = UInt16
 
-enum BCSensorStatus : Int8 {
+public enum BCSensorStatus : Int8 {
     case Initialising = 0x1
     case ID_Auto_Assigned = 0x2
     case ID_Undefined = 0x4
     case OK = 0x8
     case NOK = 0x10
+	
+	func display() -> String {
+		switch self {
+		case .Initialising:
+			return "Init"
+		case .ID_Auto_Assigned:
+			return "ID Auto"
+		case .ID_Undefined:
+			return "ID Undef"
+		case .OK:
+			return "OK"
+		case .NOK:
+			return "NOK"
+		}
+	}
 }
 
-enum BCControllerState : BCStateID {
+public enum BCControllerState : BCStateID {
     // unused values are commented
     case Undefined = -2
     //case Same = -1
@@ -30,13 +45,37 @@ enum BCControllerState : BCStateID {
     case Sensors_NOK = 1
     case Ready = 2
     case Idle = 3
-    case Recodrding = 4
+    case Recording = 4
     case Standby = 5
     case Heating = 6
-    case Overheated = 7
+	case Overheated = 7
+	
+	func display() -> String {
+		switch self {
+		case .Undefined:
+			return "Undef"
+		case .Init:
+			return "Init"
+		case .Sensors_NOK:
+			return "Sensors NOK"
+		case .Ready:
+			return "Ready"
+		case .Idle:
+			return "Idle"
+		case .Recording:
+			return "Recording"
+		case .Standby:
+			return "Standby"
+		case .Heating:
+			return "Heating"
+		case .Overheated:
+			return "Overheated"
+		}
+	}
+
 }
 
-enum BCUserCommand : BCUserCommandID {
+public enum BCUserCommand : BCUserCommandID {
     // values not used by this App are commented
     case None             = 0       // 1
     //case Info_Help        = 0x1     // 2

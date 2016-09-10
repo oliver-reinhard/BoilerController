@@ -11,8 +11,7 @@
 		A718232B1D790ADD005D9C78 /* BTService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A718232A1D790ADD005D9C78 /* BTService.swift */; };
 		A72D9CBD1CF00941009AAB41 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72D9CBC1CF00941009AAB41 /* Logger.swift */; };
 		A78748121D7CEF5A009BCFF7 /* BTDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A78748111D7CEF5A009BCFF7 /* BTDiscovery.swift */; };
-		A794F5D61D7E703400E5F22B /* BoilerControllerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A794F5D51D7E703400E5F22B /* BoilerControllerModel.swift */; };
-		A795BC1E1D7E202D00E411DC /* BTCharNotificationObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A795BC1D1D7E202D00E411DC /* BTCharNotificationObserver.swift */; };
+		A794F5D61D7E703400E5F22B /* BCModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A794F5D51D7E703400E5F22B /* BCModel.swift */; };
 		A7DF1E861CFFDB08006A5C33 /* Podfile in Resources */ = {isa = PBXBuildFile; fileRef = A7DF1E841CFFDB08006A5C33 /* Podfile */; };
 		A7E88E7D1CFD319700AD652A /* ConnectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E88E7C1CFD319700AD652A /* ConnectionViewController.swift */; };
 		A7EF1D521CB6F7BC00A6C6A6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EF1D511CB6F7BC00A6C6A6 /* AppDelegate.swift */; };
@@ -49,8 +48,7 @@
 		A718232A1D790ADD005D9C78 /* BTService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BTService.swift; sourceTree = "<group>"; };
 		A72D9CBC1CF00941009AAB41 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A78748111D7CEF5A009BCFF7 /* BTDiscovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BTDiscovery.swift; sourceTree = "<group>"; };
-		A794F5D51D7E703400E5F22B /* BoilerControllerModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoilerControllerModel.swift; sourceTree = "<group>"; };
-		A795BC1D1D7E202D00E411DC /* BTCharNotificationObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BTCharNotificationObserver.swift; sourceTree = "<group>"; };
+		A794F5D51D7E703400E5F22B /* BCModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BCModel.swift; sourceTree = "<group>"; };
 		A7DF1E841CFFDB08006A5C33 /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		A7E88E7C1CFD319700AD652A /* ConnectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionViewController.swift; sourceTree = "<group>"; };
 		A7EF1D4E1CB6F7BC00A6C6A6 /* BoilerController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BoilerController.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -143,8 +141,7 @@
 				A71823281D78C475005D9C78 /* ArduinoTypes.swift */,
 				A78748111D7CEF5A009BCFF7 /* BTDiscovery.swift */,
 				A718232A1D790ADD005D9C78 /* BTService.swift */,
-				A795BC1D1D7E202D00E411DC /* BTCharNotificationObserver.swift */,
-				A794F5D51D7E703400E5F22B /* BoilerControllerModel.swift */,
+				A794F5D51D7E703400E5F22B /* BCModel.swift */,
 			);
 			name = "Boiler-Controller";
 			path = BoilerController;
@@ -186,12 +183,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = A7EF1D781CB6F7BC00A6C6A6 /* Build configuration list for PBXNativeTarget "Boiler-Controller" */;
 			buildPhases = (
-				2F91D9F99966EED4DB63F4D3 /* 📦 Check Pods Manifest.lock */,
+				2F91D9F99966EED4DB63F4D3 /* [CP] Check Pods Manifest.lock */,
 				A7EF1D4A1CB6F7BC00A6C6A6 /* Sources */,
 				A7EF1D4B1CB6F7BC00A6C6A6 /* Frameworks */,
 				A7EF1D4C1CB6F7BC00A6C6A6 /* Resources */,
-				D5BFB08F416F9D6137E58360 /* 📦 Embed Pods Frameworks */,
-				6305FB695E7FB74D7C1DBCA7 /* 📦 Copy Pods Resources */,
+				D5BFB08F416F9D6137E58360 /* [CP] Embed Pods Frameworks */,
+				6305FB695E7FB74D7C1DBCA7 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -310,14 +307,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		2F91D9F99966EED4DB63F4D3 /* 📦 Check Pods Manifest.lock */ = {
+		2F91D9F99966EED4DB63F4D3 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "📦 Check Pods Manifest.lock";
+			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -325,14 +322,14 @@
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
-		6305FB695E7FB74D7C1DBCA7 /* 📦 Copy Pods Resources */ = {
+		6305FB695E7FB74D7C1DBCA7 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "📦 Copy Pods Resources";
+			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -340,14 +337,14 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Boiler-Controller/Pods-Boiler-Controller-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		D5BFB08F416F9D6137E58360 /* 📦 Embed Pods Frameworks */ = {
+		D5BFB08F416F9D6137E58360 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "📦 Embed Pods Frameworks";
+			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -367,11 +364,10 @@
 				A78748121D7CEF5A009BCFF7 /* BTDiscovery.swift in Sources */,
 				A7E88E7D1CFD319700AD652A /* ConnectionViewController.swift in Sources */,
 				A7EF1D521CB6F7BC00A6C6A6 /* AppDelegate.swift in Sources */,
-				A794F5D61D7E703400E5F22B /* BoilerControllerModel.swift in Sources */,
+				A794F5D61D7E703400E5F22B /* BCModel.swift in Sources */,
 				A718232B1D790ADD005D9C78 /* BTService.swift in Sources */,
 				A71823291D78C475005D9C78 /* ArduinoTypes.swift in Sources */,
 				A7EF1D541CB6F7BC00A6C6A6 /* MainViewController.swift in Sources */,
-				A795BC1E1D7E202D00E411DC /* BTCharNotificationObserver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
