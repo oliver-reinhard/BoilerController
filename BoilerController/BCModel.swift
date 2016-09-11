@@ -23,9 +23,11 @@ public class ReadOnlyBCModelProperty<T> {
 
 
 public class BCModelProperty<T> : ReadOnlyBCModelProperty<T> {
-	override public var value : T? {
-		set { super.value = newValue}
-		get { return super.value }
+	
+	public internal(set) var valueManager : BTCharacteristicValueManager?
+	
+	func writeRemote(value : T) {
+		
 	}
 }
 
@@ -48,9 +50,17 @@ public final class BCModel : BTCharacteristicValueObserver {
 	// log
 	public let logEntry				= ReadOnlyBCModelProperty<Int>()
 	
+	public var valueManager : BTCharacteristicValueManager? {
+		didSet {
+			userRequest.valueManager =  self.valueManager
+			targetTemperature.valueManager = self.valueManager
+		}
+	}
+	
 	public func addPropertyChangedObserver(block : (NSNotification) -> Void) {
 		NSNotificationCenter.defaultCenter().addObserverForName(BCModelPropertyChangedNotification, object: nil, queue: nil, usingBlock: block)
 	}
+	
 	
 	public func characteristicValueUpdated(forCharacteristic characteristic: CBCharacteristic)  {
 		// we are being notified about a characteristic we are aware of:
@@ -70,21 +80,21 @@ public final class BCModel : BTCharacteristicValueObserver {
 				}
 			}
 		case .TimeInState:
-			if let time : BCMillis? = extract(value, startAt: 0) {
+			if let time : BCMillis? = extract(value) {
 				timeInState.value = time
 			}
 		case .TimeHeated:
-			if let time : BCMillis? = extract(value, startAt: 0) {
+			if let time : BCMillis? = extract(value) {
 				timeHeated.value = time
 			}
 		case .AcceptedUserCmds:
-			if let cmds : BCUserCommands? = extract(value, startAt: 0) {
+			if let cmds : BCUserCommands? = extract(value) {
 				acceptedUserCmds.value = cmds
 			}
 		case .UserRequest:  // is not notified
 			break
 		case .WaterSensor:
-			if let encodedValue : Int32? = extract(value, startAt: 0) {
+			if let encodedValue : Int32? = extract(value) {
 				let temp = Double(encodedValue! >> 8) / 100.0
 				let rawStatus = Int8(encodedValue! & 0x000F)
 				if let status = BCSensorStatus(rawValue: rawStatus) {
@@ -93,7 +103,7 @@ public final class BCModel : BTCharacteristicValueObserver {
 				}
 			}
 		case .AmbientSensor:
-			if let encodedValue : Int32? = extract(value, startAt: 0) {
+			if let encodedValue : Int32? = extract(value) {
 				let temp = Double(encodedValue! >> 8) / 100.0
 				let rawStatus = Int8(encodedValue! & 0x000F)
 				if let status = BCSensorStatus(rawValue: rawStatus) {
@@ -102,7 +112,7 @@ public final class BCModel : BTCharacteristicValueObserver {
 				}
 			}
 		case .TargetTemp:
-			if let temp : BCTemperature? = extract(value, startAt: 0) {
+			if let temp : BCTemperature? = extract(value) {
 				targetTemperature.value = Double(temp!) / 100.0
 			}
 		case .LogEntry:
@@ -110,7 +120,7 @@ public final class BCModel : BTCharacteristicValueObserver {
 		}
 	}
 	
-	private func  extract<T>(data : NSData, startAt bytePos : Int) -> T? {
+	private func  extract<T>(data : NSData, startAt bytePos : Int = 0) -> T? {
 		let size = sizeof(T) - 1
 		let allocSize = data.length / size
 		if data.length >= bytePos + size {
@@ -118,12 +128,35 @@ public final class BCModel : BTCharacteristicValueObserver {
 			buf.initializeFrom(UnsafeMutablePointer<T>(data.bytes), count: 1)
 			let value = buf[0]
 			buf.dealloc(allocSize)
-			return value;
+			return value
 		}
 		return nil
 	}
 }
 
+extension NSData {
+	func  extract<T>(startAt bytePos : Int) -> T? {
+		let size = sizeof(T) - 1
+		let allocSize = self.length / size
+		if self.length >= bytePos + size {
+			let buf = UnsafeMutablePointer<T>.alloc(allocSize)
+			buf.initializeFrom(UnsafeMutablePointer<T>(self.bytes), count: 1)
+			let value = buf[0]
+			buf.dealloc(allocSize)
+			return value
+		}
+		return nil
+	}
+	
+	static func fromValue<T>(value : T) -> NSData {
+		let size = sizeof(T) - 1
+		let buf = UnsafeMutablePointer<T>.alloc(size)
+		buf.initialize(value)
+		let result = NSData(bytes: buf, length: size)
+		buf.dealloc(size)
+		return result
+	}
+}
 
 protocol BCModelContext {
 	var controllerModel : BCModel! { get set }

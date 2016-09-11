@@ -183,19 +183,37 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="wYO-SF-hfT">
-                                <rect key="frame" x="122" y="41" width="77" height="22"/>
+                                <rect key="frame" x="122" y="192" width="77" height="22"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
                                 <state key="normal" title="Scan"/>
                                 <connections>
                                     <action selector="scanButtonPressed:" destination="r5m-dN-TPy" eventType="touchUpInside" id="C5o-3n-rP6"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="B26-0A-zbF">
+                                <rect key="frame" x="103" y="301" width="107" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="24"/>
+                                <state key="normal" title="Connect"/>
+                                <connections>
+                                    <action selector="connectButtonPressed:" destination="r5m-dN-TPy" eventType="touchUpInside" id="Tsg-yO-B40"/>
+                                </connections>
+                            </button>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" id="59I-md-cj1">
+                                <rect key="frame" x="87" y="242" width="147" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="20"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Connection" image="first" id="BXW-I8-rMa"/>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
+                        <outlet property="connect" destination="B26-0A-zbF" id="vPG-Vq-CYU"/>
+                        <outlet property="deviceName" destination="59I-md-cj1" id="q8R-Zq-dzq"/>
                         <outlet property="startStopScan" destination="wYO-SF-hfT" id="7r2-dw-nQf"/>
                     </connections>
                 </viewController>

@@ -179,7 +179,7 @@ class MainViewController: UIViewController, BCModelContext {
 	
 	
 	func propertyValueChanged(notification : NSNotification) {
-		dispatch_async(dispatch_get_main_queue(), {
+		//dispatch_async(dispatch_get_main_queue(), {
 			guard let property = notification.object else {
 				return
 			}
@@ -203,7 +203,7 @@ class MainViewController: UIViewController, BCModelContext {
 			} else {
 				print("Unhandled property: \(property)")
 			}
-		})
+		//})
 	}
 
 	
