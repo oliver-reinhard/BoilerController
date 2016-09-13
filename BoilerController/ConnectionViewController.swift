@@ -11,15 +11,11 @@ import UIKit
 import CoreBluetooth
 import SnapKit
 
-class ConnectionViewController: UIViewController, BCModelContext, BTAvailabilityObserver {
+class ConnectionViewController: UIViewController, ControllerModelContext, CBAvailabilityObserver {
 	
-	/* Services & Characteristics UUIDs */
-	//const uint16_t BC_CONTROLLER_SERVICE_ID[] = { 0x4c, 0xef, 0xdd, 0x58, 0xcb, 0x95, 0x44, 0x50, 0x90, 0xfb, 0xf4, 0x04, 0xdc, 0x20, 0x2f, 0x7c};
-	let boilerControllerServiceUUID = CBUUID(string: "4CEFDD58-CB95-4450-90FB-F404DC202F7C")
-	let boilerControllerAdvertisingUUID = CBUUID(string: "4CEF");
 	
-	var controllerModel : BCModel!
-	private var btPeripheralDiscovery : BTPeripheralDiscovery!
+	var controllerModel : ControllerModel!
+	private var cbPeripheralDiscovery : CBPeripheralDiscovery!
 	
     @IBOutlet weak var startStopScan: UIButton!
 	@IBOutlet weak var deviceName: UITextField!
@@ -45,8 +41,9 @@ class ConnectionViewController: UIViewController, BCModelContext, BTAvailability
 		}
 		
 		
-		btPeripheralDiscovery = BTPeripheralDiscovery(forService: boilerControllerServiceUUID, advertisingUUID: boilerControllerAdvertisingUUID, observedBy: controllerModel)
-		btPeripheralDiscovery.addAvailabilityObserver(self)
+		cbPeripheralDiscovery = CBPeripheralDiscovery(advertisingUUID: boilerControllerAdvertisingUUID)
+		cbPeripheralDiscovery.addServiceProxy(controllerModel)
+		cbPeripheralDiscovery.addAvailabilityObserver(self)
 	}
     
     
@@ -57,30 +54,30 @@ class ConnectionViewController: UIViewController, BCModelContext, BTAvailability
     
 	
     @IBAction func scanButtonPressed(sender: UIButton) {
-		if btPeripheralDiscovery.state == .Idle || btPeripheralDiscovery.state == .DiscoveredPeripherals {
-			btPeripheralDiscovery.startScan()
-		} else if btPeripheralDiscovery.state == .Scanning {
-			btPeripheralDiscovery.stopScan()
+		if cbPeripheralDiscovery.state == .Idle || cbPeripheralDiscovery.state == .DiscoveredPeripherals {
+			cbPeripheralDiscovery.startScan()
+		} else if cbPeripheralDiscovery.state == .Scanning {
+			cbPeripheralDiscovery.stopScan()
 		}
     }
 	
 	@IBAction func connectButtonPressed(sender: UIButton) {
-		if btPeripheralDiscovery.state == .DiscoveredPeripherals {
-			btPeripheralDiscovery.connectToPeripheral()
-		} else if btPeripheralDiscovery.state == .Connected {
-			btPeripheralDiscovery.disconnectFromPeripheral()
+		if cbPeripheralDiscovery.state == .DiscoveredPeripherals {
+			cbPeripheralDiscovery.connectToPeripheral()
+		} else if cbPeripheralDiscovery.state == .Connected {
+			cbPeripheralDiscovery.disconnectFromPeripheral()
 		}
 	}
 	
-	func peripheralDiscovery(discovery : BTPeripheralDiscovery, state : BTDiscoveryState) {
-		if discovery == btPeripheralDiscovery {
+	func peripheralDiscovery(discovery : CBPeripheralDiscovery, newState state : CBPeripheralDiscoveryState) {
+		if discovery == cbPeripheralDiscovery {
 			
 			startStopScan.enabled = state == .Idle || state == .Scanning || state == .DiscoveredPeripherals
 			let scanTitle =  state == .Scanning ? "Stop" : "Scan"
 			startStopScan.setTitle(scanTitle, forState: .Normal)
 			
 			if state == .DiscoveredPeripherals || state == .Connected {
-				deviceName.text = btPeripheralDiscovery.peripheral?.name
+				deviceName.text = cbPeripheralDiscovery.peripheral?.name
 			} else {
 				deviceName.text = "No device"
 			}
@@ -89,10 +86,6 @@ class ConnectionViewController: UIViewController, BCModelContext, BTAvailability
 			let connectTitle =  state == .DiscoveredPeripherals ? "Connect" : "Disconnect"
 			connect.setTitle(connectTitle, forState: .Normal)
 		}
-	}
-	
-	func serviceDiscovery(discovery : BTServiceManager, isAvailable : Bool) {
-		// empty
 	}
 
 }

@@ -8,6 +8,6 @@
 
 import CoreBluetooth
 
-public protocol BTCharacteristicValueObserver {
-	func characteristicValueUpdated(forCharacteristic characteristic : CBCharacteristic)
+public protocol CBServiceObserver {
+	func characteristic(valueUpdatedFor characteristic : CBCharacteristic)
 }

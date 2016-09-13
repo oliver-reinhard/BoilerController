@@ -1,5 +1,5 @@
 //
-//  BTDiscovery.swift
+//  CBDiscovery.swift
 //
 //  Created by Owen L Brown on 9/24/14 for Arduino_Servo
 //  Copyright (c) 2014 Razeware LLC. All rights reserved.
@@ -12,7 +12,7 @@ import CoreBluetooth
 import UIKit
 
 
-public enum BTDiscoveryState {
+public enum CBPeripheralDiscoveryState {
 	
 	case Disabled
 	case Idle
@@ -21,52 +21,54 @@ public enum BTDiscoveryState {
 	case Connected
 }
 
-public protocol BTAvailabilityObserver : class {
-	func peripheralDiscovery(discovery : BTPeripheralDiscovery, state : BTDiscoveryState)
-	func serviceDiscovery(discovery : BTServiceManager, isAvailable : Bool)
+public protocol CBAvailabilityObserver : class {
+	func peripheralDiscovery(discovery : CBPeripheralDiscovery, newState state : CBPeripheralDiscoveryState)
 }
 
 
-public class BTPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
+public class CBPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 	
+	public private(set) var advertisingUUID : CBUUID!
+ 	private var serviceProxies = [CBUUID : GattServiceProxy]()
 	
-	private(set) var serviceUUID : CBUUID!
-	private(set) var advertisingUUID : CBUUID!
-	private(set) var observer : BTCharacteristicValueObserver?
-	private var service: BTServiceManager!
+	private var serviceManager: CBServiceManager?
 	private var centralManager : CBCentralManager!
-	public private(set) var peripheral : CBPeripheral?
+	public private(set)  var peripheral : CBPeripheral?
 	
-	private var availabilityObservers = [BTAvailabilityObserver]()
+	private var availabilityObservers = [CBAvailabilityObserver]()
 	
-	public private(set) var state = BTDiscoveryState.Disabled {
+	public private(set) var state = CBPeripheralDiscoveryState.Disabled {
 		didSet {
 			print("CentralManager: is \(state)")
+			// execute on main thread so UI observers don't get into trouble:
 			dispatch_async(dispatch_get_main_queue(), {
 				for obs in self.availabilityObservers {
-					obs.peripheralDiscovery(self, state: self.state)
+					obs.peripheralDiscovery(self, newState: self.state)
 				}
 			})
 		}
 	}
 	
-	init(forService serviceUUID : CBUUID, advertisingUUID : CBUUID?, observedBy observer : BTCharacteristicValueObserver?) {
+	init(advertisingUUID : CBUUID) {
 		super.init()
-		
-		self.serviceUUID = serviceUUID
-		if advertisingUUID != nil {
-			self.advertisingUUID = advertisingUUID!
-		} else {
-			// service advertises first 2 bytes (= 4 hex characters) of 16-byte UUID
-			let uuid2str = String(serviceUUID.UUIDString.characters.prefix(4))
-			self.advertisingUUID = CBUUID(string: uuid2str)
-		}
-		self.observer = observer
-		self.service = BTServiceManager(forService: serviceUUID, observedBy: observer)
+		self.advertisingUUID = advertisingUUID
 		
 		let centralQueue = dispatch_queue_create("boiler-controller", DISPATCH_QUEUE_SERIAL)
 		centralManager = CBCentralManager(delegate: self, queue: centralQueue)
 	}
+	
+	
+	public func addServiceProxy(proxy : GattServiceProxy) {
+		serviceProxies[proxy.serviceUUID] = proxy
+		proxy.service(availabilityDidChange: .Uninitialized)
+	}
+	
+	/*
+	public func removeServiceProxy(proxy : GattServiceProxy) {
+		serviceProxies[proxy.serviceUUID] = nil
+		proxy.service(availabilityDidChange: .Uninitialized)
+	}
+	*/
 	
 	
 	public func startScan() {
@@ -98,7 +100,7 @@ public class BTPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 		}
 	}
 	
-	public func addAvailabilityObserver(observer : BTAvailabilityObserver) {
+	public func addAvailabilityObserver(observer : CBAvailabilityObserver) {
 		for obs in availabilityObservers {
 			if obs === observer {
 				return
@@ -107,19 +109,18 @@ public class BTPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 		availabilityObservers.append(observer)
 	}
 	
-	public func removeAvailabilityObserver(observer : BTAvailabilityObserver) {
+	public func removeAvailabilityObserver(observer : CBAvailabilityObserver) {
 		for (index, value) in availabilityObservers.enumerate() {
 			if value === observer {
 				availabilityObservers.removeAtIndex(index)
 				break
 			}
 		}
-		availabilityObservers.append(observer)
 	}
 	
-	private func reset(state : BTDiscoveryState) {
+	private func reset(state : CBPeripheralDiscoveryState) {
 		self.peripheral = nil
-		self.service.reset()
+		self.serviceManager?.reset()
 		self.state = state
 	}
 	
@@ -163,7 +164,7 @@ public class BTPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 		if self.peripheral == nil || self.peripheral?.state == CBPeripheralState.Disconnected {
 			print("CentralManager: discovered peripheral \(peripheral.name!), advertisment: \(advertisementData), RSSI: \(RSSI)")
 			self.peripheral = peripheral
-			self.service.reset()
+			self.serviceManager?.reset()
 			
 			// stop after the first one discovered
 			stopScan()
@@ -180,7 +181,10 @@ public class BTPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 		state = .Connected
 		
 		// auto-discover services:
-		service.startDiscoveringServices(initWithPeripheral: peripheral)
+		if (serviceManager == nil) {
+			serviceManager = CBServiceManager(serviceProxies: serviceProxies)
+		}
+		serviceManager!.startDiscoveringServices(initWithPeripheral: peripheral)
 	}
 	
 	

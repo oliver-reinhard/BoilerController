@@ -7,6 +7,12 @@
 //
 
 import Foundation
+import CoreBluetooth
+
+/* Services & Characteristics UUIDs */
+//const uint16_t BC_CONTROLLER_SERVICE_ID[] = { 0x4c, 0xef, 0xdd, 0x58, 0xcb, 0x95, 0x44, 0x50, 0x90, 0xfb, 0xf4, 0x04, 0xdc, 0x20, 0x2f, 0x7c};
+let boilerControllerServiceUUID = CBUUID(string: "4CEFDD58-CB95-4450-90FB-F404DC202F7C")
+let boilerControllerAdvertisingUUID = CBUUID(string: "4CEF");
 
 public typealias BCTemperature = Int16
 public typealias BCMillis = UInt32
@@ -36,6 +42,7 @@ public enum BCSensorStatus : Int8 {
 		}
 	}
 }
+
 
 public enum BCControllerState : BCStateID {
     // unused values are commented

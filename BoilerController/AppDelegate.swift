@@ -13,7 +13,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 	
-	private(set) var controllerModel : BCModel!
+	private(set) var controllerModel : ControllerModel!
 	
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
 		// Override point for customization after application launch.
@@ -24,10 +24,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 			fatalError("Expected displayed-view controllers")
 		}
 		
-		controllerModel = BCModel()
+		controllerModel = ControllerModel()
 		
 		for vc in viewControllers {
-			if var bcModelContext = vc as? BCModelContext {
+			if var bcModelContext = vc as? ControllerModelContext {
 				bcModelContext.controllerModel = controllerModel
 			}
 		}

@@ -8,9 +8,9 @@
 
 import UIKit
 
-class MainViewController: UIViewController, BCModelContext {
+class MainViewController: UIViewController, ControllerModelContext, GattServiceObserver {
 	
-	var controllerModel : BCModel!
+	var controllerModel : ControllerModel!
 	
 	@IBOutlet var outerView: UIView!
 	@IBOutlet weak var mainView: UIView!
@@ -153,11 +153,11 @@ class MainViewController: UIViewController, BCModelContext {
 		updateTimeHeated()
 		updateTimeToGo()
 		updateAcceptedCommands()
-		updateWaterTemperature()
-		updateAmbientTemperature()
+		updateWaterSensor()
+		updateAmbientSensor()
 		updateTargetTemp()
 		
-		controllerModel.addPropertyChangedObserver(propertyValueChanged)
+		controllerModel.addServiceObserver(self)
     }
 
     override func didReceiveMemoryWarning() {
@@ -166,7 +166,7 @@ class MainViewController: UIViewController, BCModelContext {
     }
 
     @IBAction func targetTempChanged(sender: UIStepper) {
-		controllerModel.targetTemperature.value = sender.value
+		controllerModel.targetTemperature.requestedValue = sender.value
     }
     
     @IBAction func leftButtonPressed(sender: UIButton) {
@@ -178,38 +178,40 @@ class MainViewController: UIViewController, BCModelContext {
 	}
 	
 	
-	func propertyValueChanged(notification : NSNotification) {
-		//dispatch_async(dispatch_get_main_queue(), {
-			guard let property = notification.object else {
-				return
-			}
-			//print("propertyValueChanged: \(property)")
-			let model = self.controllerModel
-			
-			if property === model.state {
-				self.updateState()
-			} else if property === model.timeInState {
-				self.updateTimeInState()
-			} else if property === model.timeHeated {
-				self.updateTimeHeated()
-			} else if property === model.acceptedUserCmds {
-				self.updateAcceptedCommands()
-			} else if property === model.waterTemperature || property === model.waterSensorStatus {
-				self.updateWaterTemperature()
-			} else if property === model.ambientTemperature || property === model.ambientSensorStatus {
-				self.updateAmbientTemperature()
-			} else if property === model.targetTemperature {
-				self.updateTargetTemp()
-			} else {
-				print("Unhandled property: \(property)")
-			}
-		//})
+	// MARK: GattServiceObserver
+	func service(service : GattService, availabilityDidChange availability : GattServiceAvailability) {
+		print("Main View: service availability: \(availability)")
+	}
+	
+	func attribute(service : GattService, valueDidChangeFor attribute : GattAttribute) {
+		let model = self.controllerModel
+		if attribute === model.state {
+			self.updateState()
+		} else if attribute === model.timeInState {
+			self.updateTimeInState()
+		} else if attribute === model.timeHeated {
+			self.updateTimeHeated()
+		} else if attribute === model.acceptedUserCmds {
+			self.updateAcceptedCommands()
+		} else if attribute === model.waterSensor {
+			self.updateWaterSensor()
+		} else if attribute === model.ambientSensor {
+			self.updateAmbientSensor()
+		} else if attribute === model.targetTemperature {
+			self.updateTargetTemp()
+		} else {
+			print("Unhandled attribute: \(attribute)")
+		}
+	}
+	
+	func attribute(service : GattService, requestedValueDidFailFor attribute : GattAttribute) {
+		
 	}
 
 	
 	private func formatTime(millis : BCMillis?) -> String {
 		guard millis != nil else {
-			return "0:00:00"
+			return "-:--:--"
 		}
 		let zero : Character = "0"
 		let separator : Character = ":"
@@ -247,7 +249,11 @@ class MainViewController: UIViewController, BCModelContext {
 	}
 	
 	private func updateState() {
-		state.text = controllerModel.state.value?.display()
+		guard let value = controllerModel.state.value else {
+			state.text = "--"
+			return
+		}
+		state.text = value.display()
 	}
 	
 	private func updateTimeInState() {
@@ -266,25 +272,27 @@ class MainViewController: UIViewController, BCModelContext {
 		//super.acceptedCommands(controllerModel.acceptedUserCmds.value)  /////////////////////// fix this
 	}
 	
-	private func updateWaterTemperature() {
-		guard let status = controllerModel.waterSensorStatus.value else {
+	private func updateWaterSensor() {
+		guard let sensor = controllerModel.waterSensor.value else {
+			waterTemp.text = formatTemperature(nil, printDecimal: true)
 			return
 		}
-		if status == .OK {
-			waterTemp.text = formatTemperature(controllerModel.waterTemperature.value, printDecimal: true)
+		if sensor.status == .OK {
+			waterTemp.text = formatTemperature(sensor.temperature, printDecimal: true)
 		} else {
-			waterTemp.text = status.display()
+			waterTemp.text = sensor.status.display()
 		}
 	}
 	
-	private func updateAmbientTemperature() {
-		guard let status = controllerModel.ambientSensorStatus.value else {
+	private func updateAmbientSensor() {
+		guard let sensor = controllerModel.ambientSensor.value else {
+			airTemp.text = formatTemperature(nil, printDecimal: true)
 			return
 		}
-		if status == .OK {
-			airTemp.text = formatTemperature(controllerModel.ambientTemperature.value, printDecimal: true)
+		if sensor.status == .OK {
+			airTemp.text = formatTemperature(sensor.temperature, printDecimal: true)
 		} else {
-			airTemp.text = status.display()
+			airTemp.text = sensor.status.display()
 		}
 	}
 	
