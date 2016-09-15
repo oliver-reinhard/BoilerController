@@ -37,9 +37,40 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	
 	@IBOutlet weak var waterSensorFootnote: UILabel!
 	
+	enum ButtonAction {
+		case None
+		case Rec_On
+		case Rec_Off
+		case Heat_On
+		case Heat_Off
+		case Heat_Reset
+		case Configuration
+		
+		func display() -> String {
+			switch self {
+			case None:
+				return "N/A"
+			case Rec_On:
+				return "Recording On"
+			case Rec_Off:
+				return "Recording Off"
+			case Heat_On:
+				return "Heat On"
+			case Heat_Off:
+				return "Heat Off"
+			case Heat_Reset:
+				return "Reset Heat"
+			case .Configuration:
+				return "Configuration"
+			}
+		}
+	}
+	
 	@IBOutlet weak var leftButton: UIButton!
 	@IBOutlet weak var rightButton: UIButton!
 	
+	var leftButtonState =   (ButtonAction.None, BCUserCommand.None)
+	var rightButtonState = (ButtonAction.None, BCUserCommand.None)
 	
 	required init?(coder aDecoder: NSCoder) {
 		super.init(coder: aDecoder)
@@ -139,13 +170,13 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
         }
         
         leftButton.snp_makeConstraints { (make) -> Void in
-            make.left.equalTo(mainView.snp_left).offset(40)
+            make.left.equalTo(mainView.snp_left).offset(10)
             make.bottom.equalTo(mainView.snp_bottom).offset(-10)
         }
         
         rightButton.snp_makeConstraints { (make) -> Void in
+			make.right.equalTo(mainView.snp_right).offset(-10)
             make.centerY.equalTo(leftButton.snp_centerY)
-            make.right.equalTo(mainView.snp_right).offset(-40)
         }
 		
 		updateState()
@@ -169,12 +200,49 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		controllerModel.targetTemperature.requestedValue = sender.value
     }
     
-    @IBAction func leftButtonPressed(sender: UIButton) {
-        print("Left")
+	@IBAction func leftButtonPressed(sender: UIButton) {
+		if leftButtonState.1 != .None {
+			controllerModel.userRequest.requestedValue = leftButtonState.1.rawValue
+			print("Left: \(leftButtonState.1)")
+		}
     }
-    
-    @IBAction func rightButtonPressed(sender: UIButton) {
-        print("Right")
+	
+	@IBAction func rightButtonPressed(sender: UIButton) {
+		if rightButtonState.1 != .None {
+			controllerModel.userRequest.requestedValue = rightButtonState.1.rawValue
+        	print("Right: \(rightButtonState.1)")
+		}
+	}
+	
+	private func evaluateUserCommandsForLeftButton() -> (ButtonAction, BCUserCommand) {
+		if let userCommands = controllerModel.acceptedUserCmds.value {
+			if userCommands & BCUserCommand.Rec_On.rawValue > 0 {
+				return (.Rec_On, BCUserCommand.Rec_On)
+				
+			} else if userCommands & BCUserCommand.Rec_Off.rawValue > 0 {
+				return (.Rec_Off, BCUserCommand.Rec_Off)
+				
+			} else if userCommands & BCUserCommand.Heat_Reset.rawValue > 0 {
+				return (.Heat_Reset, BCUserCommand.Heat_Reset)
+			}
+		}
+		return (.None, BCUserCommand.None)
+		
+	}
+	
+	private func evaluateUserCommandsForRightButton() -> (ButtonAction, BCUserCommand) {
+		if let userCommands = controllerModel.acceptedUserCmds.value {
+			if userCommands & BCUserCommand.Heat_On.rawValue > 0 {
+				return (.Heat_On, BCUserCommand.Heat_On)
+				
+			} else if userCommands & BCUserCommand.Heat_Off.rawValue > 0 {
+				return (.Heat_Off, BCUserCommand.Heat_Off)
+				
+			} else if userCommands.containsConfigurationCommand() {
+				return (.Configuration, BCUserCommand.None)
+			}
+		}
+		return (.None, BCUserCommand.None)
 	}
 	
 	
@@ -207,17 +275,18 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	func attribute(service : GattService, requestedValueDidFailFor attribute : GattAttribute) {
 		
 	}
-
 	
-	private func formatTime(millis : BCMillis?) -> String {
-		guard millis != nil else {
+
+	// DISPLAY utility functions
+	
+	private func formatTime(secs : BCSeconds?) -> String {
+		guard secs != nil else {
 			return "-:--:--"
 		}
 		let zero : Character = "0"
 		let separator : Character = ":"
-		let secs = millis! / 1000
-		let secPart = secs % 60
-		let mins = secs / 60
+		let secPart = secs! % 60
+		let mins = secs! / 60
 		let minPart = mins % 60
 		let hours = mins / 60
 		var result = hours.description
@@ -248,6 +317,9 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		}
 	}
 	
+	
+	// FIELD updates
+	
 	private func updateState() {
 		guard let value = controllerModel.state.value else {
 			state.text = "--"
@@ -269,7 +341,13 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	}
 	
 	private func updateAcceptedCommands() {
-		//super.acceptedCommands(controllerModel.acceptedUserCmds.value)  /////////////////////// fix this
+		leftButtonState = evaluateUserCommandsForLeftButton()
+		leftButton.setTitle(leftButtonState.0.display(), forState: .Normal)
+		leftButton.enabled = leftButtonState.0 != .None
+		
+		rightButtonState = evaluateUserCommandsForRightButton()
+		rightButton.setTitle(rightButtonState.0.display(), forState: .Normal)
+		rightButton.enabled = rightButtonState.0 != .None
 	}
 	
 	private func updateWaterSensor() {
@@ -297,7 +375,11 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	}
 	
 	private func updateTargetTemp() {
-		targetTemp.text = formatTemperature(controllerModel.targetTemperature.value, printDecimal: false)
+		let value = controllerModel.targetTemperature.value
+		targetTemp.text = formatTemperature(value, printDecimal: false)
+		if value != nil && value >= targetTempStepper.minimumValue && value <= targetTempStepper.maximumValue {
+			targetTempStepper.value = value!
+		}
 	}
 }
 

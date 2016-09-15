@@ -9,5 +9,6 @@
 import CoreBluetooth
 
 public protocol CBServiceObserver {
+	func service(availabilityDidChange cbAvailability : CBServiceAvailability)
 	func characteristic(valueUpdatedFor characteristic : CBCharacteristic)
 }

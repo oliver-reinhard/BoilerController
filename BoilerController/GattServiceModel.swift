@@ -14,9 +14,12 @@ public protocol GattAttribute : class {
 	
 	var characteristicUUID : CBUUID { get }
 	var container : GattService { get }
+	// only defined for modifiable attributes, else nil
+	var updateWithResponse : CBCharacteristicWriteType? { get }
 	
 	func extractValue(fromCharacteristic characteristic: CBCharacteristic)
 	func clearValue()
+	// only implemented (i.e invokable) for modifiable attributes:
 	func requestedValue(updateDidFail error : NSError?)
 }
 
@@ -28,7 +31,7 @@ public enum GattServiceAvailability {
 }
 
 
-public protocol GattService : class {
+public protocol GattService : class, CBServiceObserver {
 	
 	var serviceUUID : CBUUID { get }
 	var attributes : [ CBUUID : GattAttribute ] { get }
@@ -37,8 +40,6 @@ public protocol GattService : class {
 	var valueManager : CBCharacteristicValueManager? { get }
 	
 	func addAttribute(attribute : GattAttribute)
-	func service(availabilityDidChange cbAvailability : CBServiceAvailability)
-	func characteristic(valueUpdatedFor characteristic: CBCharacteristic)
 }
 
 
@@ -46,6 +47,8 @@ public class GattReadAttribute<T> : GattAttribute {
 	
 	public internal(set) var characteristicUUID : CBUUID
 	public internal(set) var container : GattService
+	// always returns nil for read-only attirbutes:
+	public internal(set) var updateWithResponse : CBCharacteristicWriteType? = nil
 	public var attributeBufferStartPos = 0
 	
 	public internal(set) var value : T? {
@@ -83,26 +86,30 @@ public class GattReadAttribute<T> : GattAttribute {
 	}
 	
 	public func requestedValue(updateDidFail error : NSError?) {
-		// empty: read-only attribute does not request value updates
+		fatalError("Read-only attribute for \(characteristicUUID) cannot request value updates")
 	}
 }
 
-
+/*
+ * A write-only attribute is still modeled as a read-also attribute. The service manager will make sure it doesn't
+ * invoke read on characteristics that don't support it.
+ */
 public class GattModifiableAttribute<T> : GattReadAttribute<T> {
-	
+		
 	public var requestedValue : T? {
 		didSet {
 			if requestedValue != nil {
 				guard let valueManager = container.valueManager else {
 					fatalError("valueManager not set")
 				}
-				valueManager.updateValue(forAttribute: self, value: encode(requestedValue: requestedValue!))
+				valueManager.updateValue(forAttribute: self, value: encode(requestedValue: requestedValue!), withResponse: updateWithResponse!)
 			}
 		}
 	}
 	
-	override init(characteristicUUID uuid: CBUUID, container : GattService) {
+	init(characteristicUUID uuid: CBUUID, container : GattService, updateWithResponse: CBCharacteristicWriteType = .WithResponse) {
 		super.init(characteristicUUID: uuid, container: container)
+		self.updateWithResponse = updateWithResponse
 	}
 	
 	func encode(requestedValue value : T) -> NSData {
@@ -127,7 +134,7 @@ public protocol GattServiceObserver : class {
 }
 
 
-public class GattServiceProxy : GattService, CBServiceObserver {
+public class GattServiceProxy : GattService {
 	
 	public internal(set) var serviceUUID : CBUUID
 	public internal(set) var attributes = [ CBUUID : GattAttribute ]()
@@ -175,6 +182,7 @@ public class GattServiceProxy : GattService, CBServiceObserver {
 		}
 	}
 	
+	// MARK: CBServiceObserver
 	public func characteristic(valueUpdatedFor characteristic: CBCharacteristic)  {
 		// we are being notified about a characteristic we are aware of:
 		guard let attribute = attributes[characteristic.UUID] else {
@@ -199,7 +207,7 @@ public class GattServiceProxy : GattService, CBServiceObserver {
 
 extension NSData {
 	func  extract<T>(startIndex : Int = 0) -> T? {
-		let size = sizeof(T) - 1
+		let size = sizeof(T) - 1 // "-1" is due to the optional return type T? which occupies 1 byte more
 		let allocSize = self.length / size
 		if self.length >= startIndex + size {
 			let buf = UnsafeMutablePointer<T>.alloc(allocSize)

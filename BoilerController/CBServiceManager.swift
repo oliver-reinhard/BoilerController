@@ -92,14 +92,28 @@ public class CBServiceManager: NSObject, CBPeripheralDelegate, CBCharacteristicV
 		
         if let characteristics = service.characteristics {
 			print("Peripheral: discovered \(characteristics.count) characteristics")
+			
 			for characteristic in characteristics {
-				if characteristic.properties.contains(CBCharacteristicProperties.Read) {
-					peripheral.readValueForCharacteristic(characteristic) // => async : will call 'didUpdateValueForCharacteristic' with result later
-					// print("Characteristic \(characteristic.UUID): Read")
-				}
-				if characteristic.properties.contains(CBCharacteristicProperties.Notify) {
-					peripheral.setNotifyValue(true, forCharacteristic: characteristic) // => will call 'didUpdateValueForCharacteristic' when updated
-					// print("Characteristic \(characteristic.UUID): Notify")
+				// if the characteristic is part of our service model, then we'll follow up on it:
+				if let attribute = getAttribute(forCharacteristic: characteristic) {
+					
+					if characteristic.properties.contains(CBCharacteristicProperties.Read) {
+						peripheral.readValueForCharacteristic(characteristic) // => async : will call 'didUpdateValueForCharacteristic' with result later
+						// print("Characteristic \(characteristic.UUID): Read")
+					}
+					if characteristic.properties.contains(CBCharacteristicProperties.Notify) {
+						peripheral.setNotifyValue(true, forCharacteristic: characteristic) // => will call 'didUpdateValueForCharacteristic' when updated
+						// print("Characteristic \(characteristic.UUID): Notify")
+					}
+					if attribute.updateWithResponse == .WithResponse  {
+						guard characteristic.properties.contains(CBCharacteristicProperties.Write) else {
+							fatalError("Attribute asks for update 'WithResponse' but characteristic \(characteristic.UUID) does not support 'Write'")
+						}
+					} else if attribute.updateWithResponse == .WithoutResponse {
+						guard characteristic.properties.contains(CBCharacteristicProperties.WriteWithoutResponse) else {
+							fatalError("Attribute asks for update 'WithoutResponse' but characteristic \(characteristic.UUID) does not support 'WriteWithoutResponse'")
+						}
+					}
 				}
 			}
 		}
@@ -121,7 +135,7 @@ public class CBServiceManager: NSObject, CBPeripheralDelegate, CBCharacteristicV
 	}
 	
 	
-	public func updateValue<T>(forAttribute attribute : GattModifiableAttribute<T>, value : NSData) {
+	public func updateValue<T>(forAttribute attribute : GattModifiableAttribute<T>, value : NSData, withResponse type: CBCharacteristicWriteType = .WithResponse) {
 		guard peripheral != nil else {
 			attribute.container.service(availabilityDidChange: .Uninitialized)
 			return
@@ -130,15 +144,17 @@ public class CBServiceManager: NSObject, CBPeripheralDelegate, CBCharacteristicV
 			fatalError("Service unavailable, characteristic \(attribute.characteristicUUID) unknown or unavailable")
 		}
 		print("Peripheral: writing value '\(attribute.requestedValue)' for characteristic \(characteristic.UUID): *\(value.bytes)*")
-		peripheral?.writeValue(value, forCharacteristic: characteristic, type: CBCharacteristicWriteType.WithResponse)
+		peripheral?.writeValue(value, forCharacteristic: characteristic, type: type)
 	}
 	
 	
 	public func peripheral(peripheral: CBPeripheral, didWriteValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
 		print("Peripheral: did write value for characteristic \(characteristic.UUID), error: \(error)")
 		if error == nil {
-			// unfortunately, the new value is not to be found in characteristic.value => read from server:
-			peripheral.readValueForCharacteristic(characteristic) // => async : will call 'didUpdateValueForCharacteristic' with result later
+			if characteristic.properties.contains(CBCharacteristicProperties.Read) {
+				// unfortunately, the new value is not to be found in characteristic.value => read from server:
+				peripheral.readValueForCharacteristic(characteristic) // => async : will call 'didUpdateValueForCharacteristic' with result later
+			}
 		} else {
 			guard let attribute = getAttribute(forCharacteristic: characteristic) else {
 				fatalError("Attribute for characteristic \(characteristic.UUID) unknown or unavailable")

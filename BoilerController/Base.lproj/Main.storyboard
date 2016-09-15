@@ -119,14 +119,16 @@
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="Qur-Ky-AAh">
                                         <rect key="frame" x="19" y="443" width="52" height="37"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="20"/>
                                         <state key="normal" title="Left"/>
                                         <connections>
                                             <action selector="leftButtonPressed:" destination="9pv-A4-QxB" eventType="touchUpInside" id="gWr-kW-ahD"/>
                                         </connections>
                                     </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="cwD-Cc-afr" userLabel="Right Button">
-                                        <rect key="frame" x="239" y="443" width="36" height="40"/>
+                                        <rect key="frame" x="224" y="443" width="51" height="40"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="20"/>
                                         <state key="normal" title="Right"/>
                                         <connections>
                                             <action selector="rightButtonPressed:" destination="9pv-A4-QxB" eventType="touchUpInside" id="tUg-01-FKt"/>

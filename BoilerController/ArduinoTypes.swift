@@ -15,10 +15,23 @@ let boilerControllerServiceUUID = CBUUID(string: "4CEFDD58-CB95-4450-90FB-F404DC
 let boilerControllerAdvertisingUUID = CBUUID(string: "4CEF");
 
 public typealias BCTemperature = Int16
-public typealias BCMillis = UInt32
+public typealias BCSeconds = UInt32
 public typealias BCStateID = Int8
 public typealias BCUserCommandID = UInt16
+
 public typealias BCUserCommands = UInt16
+
+extension BCUserCommands {
+	
+	func containsConfigurationCommand() -> Bool {
+		let configCommands = BCUserCommand.Config_Set_Value.rawValue
+			| BCUserCommand.Config_Ack_Ids.rawValue
+			| BCUserCommand.Config_Swap_Ids.rawValue
+			| BCUserCommand.Config_Clear_Ids.rawValue
+			| BCUserCommand.Config_Reset_All.rawValue
+		return self & configCommands > 0
+	}
+}
 
 public enum BCSensorStatus : Int8 {
     case Initialising = 0x1
@@ -89,7 +102,7 @@ public enum BCUserCommand : BCUserCommandID {
     //case Info_Stat        = 0x2     // 3
     //case Info_Config      = 0x4     // 4
     case Info_Log         = 0x8     // 5
-    //case Config_Set_Value = 0x10    // 6   (16)
+    case Config_Set_Value = 0x10    // 6   (16)
     case Config_Swap_Ids  = 0x20    // 7   (32)
     case Config_Clear_Ids = 0x40    // 8   (64)
     case Config_Ack_Ids   = 0x80    // 9   (128)
@@ -98,7 +111,8 @@ public enum BCUserCommand : BCUserCommandID {
     case Rec_Off          = 0x400   // 12  (1024)
     case Heat_On          = 0x800   // 13  (2048)
     case Heat_Off         = 0x1000  // 14  (4096)
-    case Heat_Reset       = 0x2000  // 15  (8192)
+	case Heat_Reset       = 0x2000  // 15  (8192)
+	
 }
 
 enum BCGattCharUUID : String {

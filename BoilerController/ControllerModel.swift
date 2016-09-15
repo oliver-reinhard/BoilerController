@@ -86,10 +86,10 @@ public class ControllerModel : GattServiceProxy {
 	
 	// status
 	public private(set) var state 				: BCControllerStateAttribute!
-	public private(set) var timeInState			: GattReadAttribute<BCMillis>!
-	public private(set) var timeHeated			: GattReadAttribute<BCMillis>!
+	public private(set) var timeInState			: GattReadAttribute<BCSeconds>!
+	public private(set) var timeHeated			: GattReadAttribute<BCSeconds>!
 	public private(set) var acceptedUserCmds	: GattReadAttribute<BCUserCommands>!
-	public private(set) var userRequest			: GattModifiableAttribute<BCUserCommand>!
+	public private(set) var userRequest			: GattModifiableAttribute<BCUserCommandID>!
 	public private(set) var waterSensor			: GattReadAttribute<BCTemperatureSensor>!
 	public private(set) var ambientSensor		: GattReadAttribute<BCTemperatureSensor>!
 	
@@ -104,8 +104,8 @@ public class ControllerModel : GattServiceProxy {
 		super.init(serviceUUID: boilerControllerServiceUUID)
 		
 		state 				= BCControllerStateAttribute(characteristicUUID:   .State, container: self)
-		timeInState			= createReadAttribute(characteristicUUID:          .TimeInState)
-		timeHeated			= createReadAttribute(characteristicUUID:          .TimeHeated)
+		timeInState			= createReadAttribute(characteristicUUID:          .TimeInState) // [s]
+		timeHeated			= createReadAttribute(characteristicUUID:          .TimeHeated)  // [s]
 		acceptedUserCmds	= createReadAttribute(characteristicUUID:          .AcceptedUserCmds)
 		userRequest			= createModifiableAttribute(characteristicUUID:    .UserRequest)
 		waterSensor			= BCTemperatureSensorAttribute(characteristicUUID: .WaterSensor, container: self)
