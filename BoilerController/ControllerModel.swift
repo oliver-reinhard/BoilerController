@@ -88,6 +88,7 @@ public class ControllerModel : GattServiceProxy {
 	public private(set) var state 				: BCControllerStateAttribute!
 	public private(set) var timeInState			: GattReadAttribute<BCSeconds>!
 	public private(set) var timeHeated			: GattReadAttribute<BCSeconds>!
+	public private(set) var timeToGo			: GattReadAttribute<BCSeconds>!
 	public private(set) var acceptedUserCmds	: GattReadAttribute<BCUserCommands>!
 	public private(set) var userRequest			: GattModifiableAttribute<BCUserCommandID>!
 	public private(set) var waterSensor			: GattReadAttribute<BCTemperatureSensor>!
@@ -106,6 +107,7 @@ public class ControllerModel : GattServiceProxy {
 		state 				= BCControllerStateAttribute(characteristicUUID:   .State, container: self)
 		timeInState			= createReadAttribute(characteristicUUID:          .TimeInState) // [s]
 		timeHeated			= createReadAttribute(characteristicUUID:          .TimeHeated)  // [s]
+		timeToGo			= createReadAttribute(characteristicUUID:          .TimeToGo)    // [s]
 		acceptedUserCmds	= createReadAttribute(characteristicUUID:          .AcceptedUserCmds)
 		userRequest			= createModifiableAttribute(characteristicUUID:    .UserRequest)
 		waterSensor			= BCTemperatureSensorAttribute(characteristicUUID: .WaterSensor, container: self)

@@ -259,6 +259,8 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 			self.updateTimeInState()
 		} else if attribute === model.timeHeated {
 			self.updateTimeHeated()
+		} else if attribute === model.timeToGo {
+			self.updateTimeToGo()
 		} else if attribute === model.acceptedUserCmds {
 			self.updateAcceptedCommands()
 		} else if attribute === model.waterSensor {
@@ -268,7 +270,7 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		} else if attribute === model.targetTemperature {
 			self.updateTargetTemp()
 		} else {
-			print("Unhandled attribute: \(attribute)")
+			print("Unhandled attribute: \(attribute.characteristicUUID)")
 		}
 	}
 	
@@ -280,7 +282,7 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	// DISPLAY utility functions
 	
 	private func formatTime(secs : BCSeconds?) -> String {
-		guard secs != nil else {
+		guard secs != nil && secs != UndefinedBCSeconds else {
 			return "-:--:--"
 		}
 		let zero : Character = "0"
@@ -337,7 +339,8 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	}
 	
 	private func updateTimeToGo() {
-		timeToGo.text = formatTime(nil)
+		let seconds = controllerModel.timeToGo.value
+		timeToGo.text = formatTime(seconds)
 	}
 	
 	private func updateAcceptedCommands() {

@@ -15,10 +15,10 @@ let boilerControllerServiceUUID = CBUUID(string: "4CEFDD58-CB95-4450-90FB-F404DC
 let boilerControllerAdvertisingUUID = CBUUID(string: "4CEF");
 
 public typealias BCTemperature = Int16
-public typealias BCSeconds = UInt32
+public typealias BCSeconds = Int32
+public let UndefinedBCSeconds : BCSeconds = -1
 public typealias BCStateID = Int8
 public typealias BCUserCommandID = UInt16
-
 public typealias BCUserCommands = UInt16
 
 extension BCUserCommands {
@@ -120,10 +120,11 @@ enum BCGattCharUUID : String {
 	case State 				= "0001" // HEX value!
 	case TimeInState 		= "0002"
 	case TimeHeated 		= "0003"
-	case AcceptedUserCmds 	= "0004"
-	case UserRequest 		= "0005"
-	case WaterSensor 		= "0006"
-	case AmbientSensor 		= "0007"
+	case TimeToGo	 		= "0004"
+	case AcceptedUserCmds 	= "0005"
+	case UserRequest 		= "0006"
+	case WaterSensor 		= "0007"
+	case AmbientSensor 		= "0008"
 	// configuration
 	case TargetTemp 		= "1000"
 	// log
