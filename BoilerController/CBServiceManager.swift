@@ -57,7 +57,7 @@ public class CBServiceManager: NSObject, CBPeripheralDelegate, CBCharacteristicV
     }
 	
 	
-    // Mark: - CBPeripheralDelegate
+    // Mark: CBPeripheralDelegate
     
     public func peripheral(peripheral: CBPeripheral, didDiscoverServices error: NSError?) {
 		print("Peripheral: discovered service(s)")
@@ -135,19 +135,6 @@ public class CBServiceManager: NSObject, CBPeripheralDelegate, CBCharacteristicV
 	}
 	
 	
-	public func updateValue<T>(forAttribute attribute : GattModifiableAttribute<T>, value : NSData, withResponse type: CBCharacteristicWriteType = .WithResponse) {
-		guard peripheral != nil else {
-			attribute.container.service(availabilityDidChange: .Uninitialized)
-			return
-		}
-		guard let characteristic = getCharacteristic(forAttribute: attribute) else {
-			fatalError("Service unavailable, characteristic \(attribute.characteristicUUID) unknown or unavailable")
-		}
-		print("Peripheral: writing value '\(attribute.requestedValue)' for characteristic \(characteristic.UUID): *\(value.bytes)*")
-		peripheral?.writeValue(value, forCharacteristic: characteristic, type: type)
-	}
-	
-	
 	public func peripheral(peripheral: CBPeripheral, didWriteValueForCharacteristic characteristic: CBCharacteristic, error: NSError?) {
 		print("Peripheral: did write value for characteristic \(characteristic.UUID), error: \(error)")
 		if error == nil {
@@ -163,6 +150,20 @@ public class CBServiceManager: NSObject, CBPeripheralDelegate, CBCharacteristicV
 		}
 	}
 	
+	// Mark: END CBPeripheralDelegate
+	
+	
+	public func updateValue<T>(forAttribute attribute : GattModifiableAttribute<T>, value : NSData, withResponse type: CBCharacteristicWriteType = .WithResponse) {
+		guard peripheral != nil else {
+			attribute.container.service(availabilityDidChange: .Uninitialized)
+			return
+		}
+		guard let characteristic = getCharacteristic(forAttribute: attribute) else {
+			fatalError("Service unavailable, characteristic \(attribute.characteristicUUID) unknown or unavailable")
+		}
+		print("Peripheral: writing value '\(attribute.requestedValue)' for characteristic \(characteristic.UUID): *\(value.bytes)*")
+		peripheral?.writeValue(value, forCharacteristic: characteristic, type: type)
+	}
 	
 	private func getCharacteristic(forAttribute attribute : GattAttribute) -> CBCharacteristic? {
 		guard let services = peripheral?.services else {
