@@ -12,6 +12,8 @@
 		A72D9CBD1CF00941009AAB41 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A72D9CBC1CF00941009AAB41 /* Logger.swift */; };
 		A78748121D7CEF5A009BCFF7 /* CBPeripheralDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A78748111D7CEF5A009BCFF7 /* CBPeripheralDiscovery.swift */; };
 		A794F5D61D7E703400E5F22B /* ControllerModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A794F5D51D7E703400E5F22B /* ControllerModel.swift */; };
+		A796E2F51D8FAA5700066401 /* LabeledDataField.swift in Sources */ = {isa = PBXBuildFile; fileRef = A796E2F41D8FAA5700066401 /* LabeledDataField.swift */; };
+		A796E2F71D8FAC2700066401 /* LabeledDataFieldController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A796E2F61D8FAC2700066401 /* LabeledDataFieldController.swift */; };
 		A7DF1E861CFFDB08006A5C33 /* Podfile in Resources */ = {isa = PBXBuildFile; fileRef = A7DF1E841CFFDB08006A5C33 /* Podfile */; };
 		A7E88E7D1CFD319700AD652A /* ConnectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E88E7C1CFD319700AD652A /* ConnectionViewController.swift */; };
 		A7EF1D521CB6F7BC00A6C6A6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7EF1D511CB6F7BC00A6C6A6 /* AppDelegate.swift */; };
@@ -52,6 +54,8 @@
 		A72D9CBC1CF00941009AAB41 /* Logger.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		A78748111D7CEF5A009BCFF7 /* CBPeripheralDiscovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBPeripheralDiscovery.swift; sourceTree = "<group>"; };
 		A794F5D51D7E703400E5F22B /* ControllerModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControllerModel.swift; sourceTree = "<group>"; };
+		A796E2F41D8FAA5700066401 /* LabeledDataField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LabeledDataField.swift; sourceTree = "<group>"; };
+		A796E2F61D8FAC2700066401 /* LabeledDataFieldController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LabeledDataFieldController.swift; sourceTree = "<group>"; };
 		A7DF1E841CFFDB08006A5C33 /* Podfile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Podfile; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		A7E88E7C1CFD319700AD652A /* ConnectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConnectionViewController.swift; sourceTree = "<group>"; };
 		A7EF1D4E1CB6F7BC00A6C6A6 /* BoilerController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BoilerController.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -137,6 +141,8 @@
 			children = (
 				A7F4D2501D847FD6005D1BFA /* BTCommunication */,
 				A72D9CBC1CF00941009AAB41 /* Logger.swift */,
+				A796E2F41D8FAA5700066401 /* LabeledDataField.swift */,
+				A796E2F61D8FAC2700066401 /* LabeledDataFieldController.swift */,
 				A7EF1D511CB6F7BC00A6C6A6 /* AppDelegate.swift */,
 				A7E88E7C1CFD319700AD652A /* ConnectionViewController.swift */,
 				A7EF1D531CB6F7BC00A6C6A6 /* MainViewController.swift */,
@@ -378,6 +384,7 @@
 			files = (
 				A72D9CBD1CF00941009AAB41 /* Logger.swift in Sources */,
 				A7EF1D561CB6F7BC00A6C6A6 /* LogTableViewController.swift in Sources */,
+				A796E2F71D8FAC2700066401 /* LabeledDataFieldController.swift in Sources */,
 				A7F4D24F1D83CC18005D1BFA /* CBCharacteristicValueManager.swift in Sources */,
 				A78748121D7CEF5A009BCFF7 /* CBPeripheralDiscovery.swift in Sources */,
 				A7E88E7D1CFD319700AD652A /* ConnectionViewController.swift in Sources */,
@@ -388,6 +395,7 @@
 				A71823291D78C475005D9C78 /* ArduinoTypes.swift in Sources */,
 				A7F4D24D1D83CBB4005D1BFA /* CBServiceObserver.swift in Sources */,
 				A7EF1D541CB6F7BC00A6C6A6 /* MainViewController.swift in Sources */,
+				A796E2F51D8FAA5700066401 /* LabeledDataField.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

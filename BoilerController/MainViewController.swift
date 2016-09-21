@@ -7,35 +7,20 @@
 //
 
 import UIKit
+import StackViewController
 
 class MainViewController: UIViewController, ControllerModelContext, GattServiceObserver {
 	
 	var controllerModel : ControllerModel!
+	let stackViewController: StackViewController
 	
-	@IBOutlet var outerView: UIView!
-	@IBOutlet weak var mainView: UIView!
-	
-	@IBOutlet weak var airLabel: UILabel!
-	@IBOutlet weak var airTemp: UILabel!
-	
-	@IBOutlet weak var waterLabel: UILabel!
-	@IBOutlet weak var waterTemp: UILabel!
-	
-	@IBOutlet weak var targetTempLabel: UILabel!
-	@IBOutlet weak var targetTemp: UILabel!
-	@IBOutlet weak var targetTempStepper: UIStepper!
-	
-	@IBOutlet weak var stateLabel: UILabel!
-	@IBOutlet weak var state: UILabel!
-	@IBOutlet weak var timeInState: UILabel!
-	
-	@IBOutlet weak var timeToGoLabel: UILabel!
-	@IBOutlet weak var timeToGo: UILabel!
-	
-	@IBOutlet weak var timeHeatedLabel: UILabel!
-	@IBOutlet weak var timeHeated: UILabel!
-	
-	@IBOutlet weak var waterSensorFootnote: UILabel!
+	var ambientTemp: LabeledDataFieldController!
+	var waterTemp: LabeledDataFieldController!
+	var targetTemp: LabeledDataFieldController!
+	var state: LabeledDataFieldController!
+	var timeInState: LabeledDataFieldController!
+	var timeToGo: LabeledDataFieldController!
+	var timeHeated: LabeledDataFieldController!
 	
 	enum ButtonAction {
 		case None
@@ -66,148 +51,123 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		}
 	}
 	
-	@IBOutlet weak var leftButton: UIButton!
-	@IBOutlet weak var rightButton: UIButton!
-	
+	var leftButton : UIButton!
 	var leftButtonState =   (ButtonAction.None, BCUserCommand.None)
+	var rightButton : UIButton!
 	var rightButtonState = (ButtonAction.None, BCUserCommand.None)
 	
 	required init?(coder aDecoder: NSCoder) {
+		stackViewController = StackViewController()
+		stackViewController.stackViewContainer.separatorViewFactory = StackViewContainer.createSeparatorViewFactory()
 		super.init(coder: aDecoder)
-		
+		edgesForExtendedLayout = .None
 	}
-    
+	
+	override func loadView() {
+		view = UIView(frame: CGRectZero)
+		view.backgroundColor = .whiteColor()
+	}
+	
     override func viewDidLoad() {
         super.viewDidLoad()
 		
 		guard controllerModel != nil else {
-			fatalError("Expected BCModel to be set")
+			fatalError("Expected ControllerModel to be set")
 		}
-        
-        let padding = UIEdgeInsetsMake(30, 10, 10, 10)
-        let lineSpacing = 15
-        
-         mainView.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(outerView.snp_top).offset(padding.top)
-            make.left.equalTo(outerView.snp_left).offset(padding.left)
-            make.bottom.equalTo(outerView.snp_bottom).offset(-padding.bottom)
-            make.right.equalTo(outerView.snp_right).offset(-padding.right)
-        }
-        
-        airTemp.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(mainView.snp_top)
-            make.right.equalTo(mainView.snp_right)
-        }
-        
-        airLabel.snp_makeConstraints { (make) -> Void in
-            make.centerY.equalTo(airTemp.snp_centerY)
-            make.left.equalTo(mainView.snp_left)
-        }
-        
-        waterTemp.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(airTemp.snp_bottom).offset(lineSpacing)
-            make.right.equalTo(mainView.snp_right)
-        }
-        
-        waterLabel.snp_makeConstraints { (make) -> Void in
-            make.centerY.equalTo(waterTemp.snp_centerY)
-            make.left.equalTo(mainView.snp_left)
-        }
-        
-        targetTemp.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(waterTemp.snp_bottom).offset(lineSpacing)
-            make.right.equalTo(mainView.snp_right)
-        }
-        
-        targetTempLabel.snp_makeConstraints { (make) -> Void in
-            make.centerY.equalTo(targetTemp.snp_centerY)
-            make.left.equalTo(mainView.snp_left)
-        }
-        
-        targetTempStepper.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(targetTemp.snp_bottom).offset(lineSpacing / 3)
-            make.right.equalTo(mainView.snp_right)
-        }
-
-        state.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(targetTempStepper.snp_bottom).offset(lineSpacing)
-            make.right.equalTo(mainView.snp_right)
-        }
-        
-        stateLabel.snp_makeConstraints { (make) -> Void in
-            make.centerY.equalTo(state.snp_centerY)
-            make.left.equalTo(mainView.snp_left)
-        }
-        
-        timeInState.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(state.snp_bottom).offset(lineSpacing / 3)
-            make.centerX.equalTo(state.snp_centerX)
-        }
-        
-        timeToGo.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(timeInState.snp_bottom).offset(lineSpacing)
-			make.right.equalTo(mainView.snp_right)
-        }
-        
-        timeToGoLabel.snp_makeConstraints { (make) -> Void in
-            make.centerY.equalTo(timeToGo.snp_centerY)
-            make.left.equalTo(mainView.snp_left)
-        }
-        
-        timeHeated.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(timeToGo.snp_bottom).offset(lineSpacing)
-            make.centerX.equalTo(state.snp_centerX)
-        }
-        
-        timeHeatedLabel.snp_makeConstraints { (make) -> Void in
-            make.centerY.equalTo(timeHeated.snp_centerY)
-            make.left.equalTo(mainView.snp_left)
-        }
-        
-        waterSensorFootnote.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(timeHeated.snp_bottom).offset(lineSpacing * 2)
-            make.left.equalTo(mainView.snp_left)
-        }
-        
-        leftButton.snp_makeConstraints { (make) -> Void in
-            make.left.equalTo(mainView.snp_left).offset(10)
-            make.bottom.equalTo(mainView.snp_bottom).offset(-10)
-        }
-        
-        rightButton.snp_makeConstraints { (make) -> Void in
-			make.right.equalTo(mainView.snp_right).offset(-10)
-            make.centerY.equalTo(leftButton.snp_centerY)
-        }
-		
-		updateState()
-		updateTimeInState()
-		updateTimeHeated()
-		updateTimeToGo()
-		updateAcceptedCommands()
-		updateWaterSensor()
-		updateAmbientSensor()
-		updateTargetTemp()
-		
 		controllerModel.addServiceObserver(self)
-    }
+		
+		let titleLabel = UILabel(frame: CGRectZero)
+		titleLabel.text = "Controller"
+		titleLabel.textColor = UIColor.blackColor()
+		titleLabel.font = UIFont.boldSystemFontOfSize(18)
+		view.addSubview(titleLabel)
+
+		ambientTemp = LabeledDataFieldController(labelText: "Ambient Temperature")
+		stackViewController.addItem(ambientTemp)
+		updateAmbientSensor()
+		
+		waterTemp = LabeledDataFieldController(labelText: "Water Temperature")
+		stackViewController.addItem(waterTemp)
+		updateWaterSensor()
+
+		targetTemp = LabeledDataFieldController(labelText: "Target Temperature")
+		stackViewController.addItem(targetTemp)
+		updateTargetTemp()
+
+		state = LabeledDataFieldController(labelText: "State")
+		stackViewController.addItem(state)
+		updateState()
+
+		timeInState = LabeledDataFieldController(labelText: "Time in State")
+		stackViewController.addItem(timeInState)
+		updateTimeInState()
+
+		timeToGo = LabeledDataFieldController(labelText: "Time to Go")
+		stackViewController.addItem(timeToGo)
+		updateTimeToGo()
+
+		timeHeated = LabeledDataFieldController(labelText: "Time Heated")
+		stackViewController.addItem(timeHeated)
+		updateTimeHeated()
+		
+		view.addSubview(stackViewController.view)
+		addChildViewController(stackViewController)
+		//stackViewController.view.activateSuperviewHuggingConstraints()
+		stackViewController.didMoveToParentViewController(self)
+		
+		leftButton = UIButton(type: .System)
+		leftButton.titleLabel!.font = titleLabel.font
+		leftButton.addTarget(self, action: #selector(MainViewController.leftButtonPressed(_:)), forControlEvents: .TouchUpInside)
+		view.addSubview(leftButton)
+		
+		rightButton = UIButton(type: .System)
+		rightButton.titleLabel!.font = titleLabel.font
+		rightButton.addTarget(self, action: #selector(MainViewController.rightButtonPressed(_:)), forControlEvents: .TouchUpInside)
+		view.addSubview(rightButton)
+		updateAcceptedCommands()
+		
+		//
+		// Layout
+		//
+		let padding = UIEdgeInsetsMake(30, 15, 25, 15)
+		let spacing = 5
+		
+		titleLabel.snp_makeConstraints { (make) -> Void in
+			make.top.equalTo(view.snp_top).offset(padding.top)
+			make.centerX.equalTo(view.snp_centerX)
+		}
+
+		leftButton.snp_makeConstraints { (make) -> Void in
+			make.left.equalTo(view.snp_left).offset(padding.left)
+			make.bottom.equalTo(view.snp_bottom).offset(-padding.bottom)
+		}
+		
+		rightButton.snp_makeConstraints { (make) -> Void in
+			make.right.equalTo(view.snp_right).offset(-padding.right)
+			make.centerY.equalTo(leftButton.snp_centerY)
+		}
+		
+		stackViewController.view.snp_makeConstraints { (make) -> Void in
+			make.top.equalTo(titleLabel.snp_bottom).offset(spacing)
+			make.left.equalTo(view.snp_left)
+			make.bottom.equalTo(leftButton.snp_top).offset(-spacing)
+			make.right.equalTo(view.snp_right)
+		}
+	}
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-    @IBAction func targetTempChanged(sender: UIStepper) {
-		controllerModel.targetTemperature.requestedValue = sender.value
-    }
-    
-	@IBAction func leftButtonPressed(sender: UIButton) {
+	
+	func leftButtonPressed(sender: UIButton!) {
 		if leftButtonState.1 != .None {
 			controllerModel.userRequest.requestedValue = leftButtonState.1.rawValue
 			print("Left: \(leftButtonState.1)")
 		}
     }
 	
-	@IBAction func rightButtonPressed(sender: UIButton) {
+	func rightButtonPressed(sender: UIButton!) {
 		if rightButtonState.1 != .None {
 			controllerModel.userRequest.requestedValue = rightButtonState.1.rawValue
         	print("Right: \(rightButtonState.1)")
@@ -324,23 +284,23 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	
 	private func updateState() {
 		guard let value = controllerModel.state.value else {
-			state.text = "--"
+			state.value = "--"
 			return
 		}
-		state.text = value.display()
+		state.value = value.display()
 	}
 	
 	private func updateTimeInState() {
-		timeInState.text = formatTime(controllerModel.timeInState.value)
+		timeInState.value = formatTime(controllerModel.timeInState.value)
 	}
 	
 	private func updateTimeHeated() {
-		timeHeated.text = formatTime(controllerModel.timeHeated.value)
+		timeHeated.value = formatTime(controllerModel.timeHeated.value)
 	}
 	
 	private func updateTimeToGo() {
 		let seconds = controllerModel.timeToGo.value
-		timeToGo.text = formatTime(seconds)
+		timeToGo.value = formatTime(seconds)
 	}
 	
 	private func updateAcceptedCommands() {
@@ -353,36 +313,36 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		rightButton.enabled = rightButtonState.0 != .None
 	}
 	
-	private func updateWaterSensor() {
-		guard let sensor = controllerModel.waterSensor.value else {
-			waterTemp.text = formatTemperature(nil, printDecimal: true)
+	private func updateAmbientSensor() {
+		guard let sensor = controllerModel.ambientSensor.value else {
+			ambientTemp.value = formatTemperature(nil, printDecimal: true)
 			return
 		}
 		if sensor.status == .OK {
-			waterTemp.text = formatTemperature(sensor.temperature, printDecimal: true)
+			ambientTemp.value = formatTemperature(sensor.temperature, printDecimal: true)
 		} else {
-			waterTemp.text = sensor.status.display()
+			ambientTemp.value = sensor.status.display()
 		}
 	}
 	
-	private func updateAmbientSensor() {
-		guard let sensor = controllerModel.ambientSensor.value else {
-			airTemp.text = formatTemperature(nil, printDecimal: true)
+	private func updateWaterSensor() {
+		guard let sensor = controllerModel.waterSensor.value else {
+			waterTemp.value = formatTemperature(nil, printDecimal: true)
 			return
 		}
 		if sensor.status == .OK {
-			airTemp.text = formatTemperature(sensor.temperature, printDecimal: true)
+			waterTemp.value = formatTemperature(sensor.temperature, printDecimal: true)
 		} else {
-			airTemp.text = sensor.status.display()
+			waterTemp.value = sensor.status.display()
 		}
 	}
 	
 	private func updateTargetTemp() {
 		let value = controllerModel.targetTemperature.value
-		targetTemp.text = formatTemperature(value, printDecimal: false)
-		if value != nil && value >= targetTempStepper.minimumValue && value <= targetTempStepper.maximumValue {
-			targetTempStepper.value = value!
-		}
+		targetTemp.value = formatTemperature(value, printDecimal: false)
+		//if value != nil && value >= targetTempStepper.minimumValue && value <= targetTempStepper.maximumValue {
+		//	targetTempStepper.value = value!
+		//}
 	}
 }
 

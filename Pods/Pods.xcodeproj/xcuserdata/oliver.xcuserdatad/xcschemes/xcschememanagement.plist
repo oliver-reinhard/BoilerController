@@ -9,6 +9,11 @@
 			<key>isShown</key>
 			<false/>
 		</dict>
+		<key>SeedStackViewController.xcscheme</key>
+		<dict>
+			<key>isShown</key>
+			<false/>
+		</dict>
 		<key>SnapKit.xcscheme</key>
 		<dict>
 			<key>isShown</key>
@@ -17,12 +22,17 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>B703B3236674361E2410A9917F45FD89</key>
+		<key>3146A89F43A3EC17347A61A5866C83B7</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
-		<key>D519BCBC1B283678F60591A5BD39AF41</key>
+		<key>BB75C1BAC8C681586DEF2F194EC9D454</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>C39B9C2D5B83F87F811B3C741A61EC1A</key>
 		<dict>
 			<key>primary</key>
 			<true/>
