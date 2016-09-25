@@ -16,11 +16,18 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	
 	var ambientTemp: LabeledDataFieldController!
 	var waterTemp: LabeledDataFieldController!
+	
 	var targetTemp: LabeledDataFieldController!
+	static let minTargetTemp = 30
+	static let maxTargetTemp = 50
+	var targetTempPicker : UIPickerView!
+	let targetTempPickerHandler = TargetTempPickerHandler()
+	
 	var state: LabeledDataFieldController!
 	var timeInState: LabeledDataFieldController!
 	var timeToGo: LabeledDataFieldController!
 	var timeHeated: LabeledDataFieldController!
+	
 	
 	enum ButtonAction {
 		case None
@@ -92,7 +99,14 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 
 		targetTemp = LabeledDataFieldController(labelText: "Target Temperature")
 		stackViewController.addItem(targetTemp)
+		targetTemp.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(MainViewController.didTapTargetTemp)))
 		updateTargetTemp()
+		
+		targetTempPicker = UIPickerView(frame: CGRectZero)
+		targetTempPicker.dataSource = targetTempPickerHandler
+		targetTempPicker.delegate = targetTempPickerHandler
+		targetTempPicker.hidden = true
+		targetTempPickerHandler.controllerModel = controllerModel
 
 		state = LabeledDataFieldController(labelText: "State")
 		stackViewController.addItem(state)
@@ -160,17 +174,31 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
         // Dispose of any resources that can be recreated.
     }
 	
+	func didTapTargetTemp() {
+		UIView.animateWithDuration(0.5) { () -> Void in
+			let picker = self.targetTempPicker
+			// only show picker view if target temp is not nil
+			if picker.hidden && self.controllerModel.targetTemperature.value != nil {
+				self.stackViewController.insertItem(picker, atIndex: 3)
+				picker.hidden = false
+			} else if !picker.hidden {
+				self.stackViewController.removeItem(picker)
+				picker.hidden = true
+			}
+		}
+	}
+	
 	func leftButtonPressed(sender: UIButton!) {
 		if leftButtonState.1 != .None {
 			controllerModel.userRequest.requestedValue = leftButtonState.1.rawValue
-			print("Left: \(leftButtonState.1)")
+			//print("Left: \(leftButtonState.1)")
 		}
     }
 	
 	func rightButtonPressed(sender: UIButton!) {
 		if rightButtonState.1 != .None {
 			controllerModel.userRequest.requestedValue = rightButtonState.1.rawValue
-        	print("Right: \(rightButtonState.1)")
+        	//print("Right: \(rightButtonState.1)")
 		}
 	}
 	
@@ -311,6 +339,8 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		rightButtonState = evaluateUserCommandsForRightButton()
 		rightButton.setTitle(rightButtonState.0.display(), forState: .Normal)
 		rightButton.enabled = rightButtonState.0 != .None
+		
+		targetTempPicker.userInteractionEnabled = controllerModel.canUpdateConfigValues
 	}
 	
 	private func updateAmbientSensor() {
@@ -340,9 +370,41 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	private func updateTargetTemp() {
 		let value = controllerModel.targetTemperature.value
 		targetTemp.value = formatTemperature(value, printDecimal: false)
-		//if value != nil && value >= targetTempStepper.minimumValue && value <= targetTempStepper.maximumValue {
-		//	targetTempStepper.value = value!
-		//}
+		guard value != nil else {
+			return
+		}
+		let intValue = Int(value!)
+		if intValue >= MainViewController.minTargetTemp && intValue <= MainViewController.maxTargetTemp {
+			let index = intValue - MainViewController.minTargetTemp
+			targetTempPicker.selectRow(index, inComponent: 0, animated: !targetTempPicker.hidden)
+		}
+	}
+	
+	
+	class TargetTempPickerHandler : NSObject, UIPickerViewDelegate, UIPickerViewDataSource {
+		
+		static let numberOfRows = MainViewController.maxTargetTemp - MainViewController.minTargetTemp + 1
+		
+		var controllerModel : ControllerModel?
+		
+		func numberOfComponentsInPickerView(pickerView: UIPickerView) -> Int {
+			return 1
+		}
+		func pickerView(pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+			return TargetTempPickerHandler.numberOfRows
+		}
+		func pickerView(pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+			guard row < TargetTempPickerHandler.numberOfRows else {
+				fatalError("Row index out of bounds: \(row)")
+			}
+			return String(MainViewController.minTargetTemp + row) + "°C"
+		}
+		func pickerView(pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+			//print("Row \(row) selected")
+			guard controllerModel != nil else {
+				return
+			}
+			controllerModel!.targetTemperature.requestedValue = Double(MainViewController.minTargetTemp + row)
+		}
 	}
 }
-

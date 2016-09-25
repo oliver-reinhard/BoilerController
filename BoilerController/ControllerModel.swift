@@ -100,6 +100,9 @@ public class ControllerModel : GattServiceProxy {
 	// log
 	public private(set) var logEntry			: GattReadAttribute<Int>!
 	
+	public var canUpdateConfigValues : Bool {
+		return acceptedUserCmds.value != nil && (acceptedUserCmds.value! & BCUserCommand.Config_Set_Value.rawValue != 0)
+	}
 	
 	init() {
 		super.init(serviceUUID: boilerControllerServiceUUID)
