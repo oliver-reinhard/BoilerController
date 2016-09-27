@@ -267,7 +267,7 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	}
 	
 
-	// DISPLAY utility functions
+	// MARK: DISPLAY utility functions
 	
 	private func formatTime(secs : BCSeconds?) -> String {
 		guard secs != nil && secs != UndefinedBCSeconds else {
@@ -308,7 +308,7 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	}
 	
 	
-	// FIELD updates
+	// MARK: FIELD updates
 	
 	private func updateState() {
 		guard let value = controllerModel.state.value else {
@@ -370,7 +370,7 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	private func updateTargetTemp() {
 		let value = controllerModel.targetTemperature.value
 		targetTemp.value = formatTemperature(value, printDecimal: false)
-		guard value != nil else {
+		guard value != nil && targetTempPicker != nil else {
 			return
 		}
 		let intValue = Int(value!)
@@ -380,6 +380,8 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		}
 	}
 	
+	
+	// MARK: TargetTempPickerHandler
 	
 	class TargetTempPickerHandler : NSObject, UIPickerViewDelegate, UIPickerViewDataSource {
 		
