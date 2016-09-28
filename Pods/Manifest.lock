@@ -1,15 +1,15 @@
 PODS:
   - SeedStackViewController (0.2.1)
-  - SnapKit (0.22.0)
+  - SnapKit (3.0.1)
 
 DEPENDENCIES:
   - SeedStackViewController (~> 0.2.1)
-  - SnapKit (~> 0.22)
+  - SnapKit (~> 3.0)
 
 SPEC CHECKSUMS:
   SeedStackViewController: aece175e207147f58b2ca9c502ab2bd26eb00952
-  SnapKit: 0dd2fd157330f1ea11fd84da13e6be8a7a22bae0
+  SnapKit: f818b8326d45b4e1c777d0ab27b5c0a3624bfdeb
 
-PODFILE CHECKSUM: d51ee72eff5b80725dc31978e719bbfb103be05a
+PODFILE CHECKSUM: 543ddca42d6ecfae71769b1f1824e6533b36b1a1
 
-COCOAPODS: 1.0.1
+COCOAPODS: 1.1.0.rc.2

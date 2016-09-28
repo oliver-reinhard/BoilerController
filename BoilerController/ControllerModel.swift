@@ -65,7 +65,7 @@ public class BCTemperatureAttribute : GattModifiableAttribute<Double> {
 	
 	override func encode(requestedValue value: Double) -> NSData {
 		let temp100 = BCTemperature(value * 100)
-		return NSData.fromValue(temp100)
+		return NSData.fromValue(value: temp100)
 	}
 }
 
@@ -85,23 +85,23 @@ public class BCLogEntryAttribute : GattReadAttribute<Int> {
 public class ControllerModel : GattServiceProxy {
 	
 	// status
-	public private(set) var state 				: BCControllerStateAttribute!
-	public private(set) var timeInState			: GattReadAttribute<BCSeconds>!
-	public private(set) var timeHeated			: GattReadAttribute<BCSeconds>!
-	public private(set) var timeToGo			: GattReadAttribute<BCSeconds>!
-	public private(set) var acceptedUserCmds	: GattReadAttribute<BCUserCommands>!
-	public private(set) var userRequest			: GattModifiableAttribute<BCUserCommandID>!
-	public private(set) var waterSensor			: GattReadAttribute<BCTemperatureSensor>!
-	public private(set) var ambientSensor		: GattReadAttribute<BCTemperatureSensor>!
+	open fileprivate(set) var state 				: BCControllerStateAttribute!
+	open fileprivate(set) var timeInState			: GattReadAttribute<BCSeconds>!
+	open fileprivate(set) var timeHeated			: GattReadAttribute<BCSeconds>!
+	open fileprivate(set) var timeToGo			: GattReadAttribute<BCSeconds>!
+	open fileprivate(set) var acceptedUserCmds	: GattReadAttribute<BCUserCommands>!
+	open fileprivate(set) var userRequest			: GattModifiableAttribute<BCUserCommandID>!
+	open fileprivate(set) var waterSensor			: GattReadAttribute<BCTemperatureSensor>!
+	open fileprivate(set) var ambientSensor		: GattReadAttribute<BCTemperatureSensor>!
 	
 	// configuration
-	public private(set) var targetTemperature	: GattModifiableAttribute<Double>!
+	open fileprivate(set) var targetTemperature	: GattModifiableAttribute<Double>!
 	
 	// log
-	public private(set) var logEntry			: GattReadAttribute<Int>!
+	open fileprivate(set) var logEntry			: GattReadAttribute<Int>!
 	
-	public var canUpdateConfigValues : Bool {
-		return acceptedUserCmds.value != nil && (acceptedUserCmds.value! & BCUserCommand.Config_Set_Value.rawValue != 0)
+	open var canUpdateConfigValues : Bool {
+		return acceptedUserCmds.value != nil && (acceptedUserCmds.value! & BCUserCommand.config_Set_Value.rawValue != 0)
 	}
 	
 	init() {
@@ -123,11 +123,11 @@ public class ControllerModel : GattServiceProxy {
 		logEntry			= BCLogEntryAttribute(characteristicUUID: .LogEntry, container: self)
 	}
 	
-	private func createReadAttribute<T>(characteristicUUID uuid: BCGattCharUUID) -> GattReadAttribute<T> {
+	fileprivate func createReadAttribute<T>(characteristicUUID uuid: BCGattCharUUID) -> GattReadAttribute<T> {
 		return GattReadAttribute<T>(characteristicUUID: CBUUID(string: uuid.rawValue), container: self)
 	}
 	
-	private func createModifiableAttribute<T>(characteristicUUID uuid: BCGattCharUUID) -> GattModifiableAttribute<T> {
+	fileprivate func createModifiableAttribute<T>(characteristicUUID uuid: BCGattCharUUID) -> GattModifiableAttribute<T> {
 		return GattModifiableAttribute<T>(characteristicUUID: CBUUID(string: uuid.rawValue), container: self)
 	}
 }

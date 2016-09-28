@@ -9,5 +9,5 @@ import CoreBluetooth
 
 public protocol CBCharacteristicValueManager {
 	
-	func updateValue<T>(forAttribute attribute : GattModifiableAttribute<T>, value : NSData, withResponse type: CBCharacteristicWriteType)
+	func updateValue<T>(forAttribute attribute : GattModifiableAttribute<T>, value : Data, withResponse type: CBCharacteristicWriteType)
 }

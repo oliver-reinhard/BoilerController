@@ -24,33 +24,33 @@ public typealias BCUserCommands = UInt16
 extension BCUserCommands {
 	
 	func containsConfigurationCommand() -> Bool {
-		let configCommands = BCUserCommand.Config_Set_Value.rawValue
-			| BCUserCommand.Config_Ack_Ids.rawValue
-			| BCUserCommand.Config_Swap_Ids.rawValue
-			| BCUserCommand.Config_Clear_Ids.rawValue
-			| BCUserCommand.Config_Reset_All.rawValue
+		let configCommands = BCUserCommand.config_Set_Value.rawValue
+			| BCUserCommand.config_Ack_Ids.rawValue
+			| BCUserCommand.config_Swap_Ids.rawValue
+			| BCUserCommand.config_Clear_Ids.rawValue
+			| BCUserCommand.config_Reset_All.rawValue
 		return self & configCommands > 0
 	}
 }
 
 public enum BCSensorStatus : Int8 {
-    case Initialising = 0x1
-    case ID_Auto_Assigned = 0x2
-    case ID_Undefined = 0x4
-    case OK = 0x8
-    case NOK = 0x10
+    case initialising = 0x1
+    case id_Auto_Assigned = 0x2
+    case id_Undefined = 0x4
+    case ok = 0x8
+    case nok = 0x10
 	
 	func display() -> String {
 		switch self {
-		case .Initialising:
+		case .initialising:
 			return "Init"
-		case .ID_Auto_Assigned:
+		case .id_Auto_Assigned:
 			return "ID Auto"
-		case .ID_Undefined:
+		case .id_Undefined:
 			return "ID Undef"
-		case .OK:
+		case .ok:
 			return "OK"
-		case .NOK:
+		case .nok:
 			return "NOK"
 		}
 	}
@@ -59,36 +59,36 @@ public enum BCSensorStatus : Int8 {
 
 public enum BCControllerState : BCStateID {
     // unused values are commented
-    case Undefined = -2
+    case undefined = -2
     //case Same = -1
     case Init = 0
-    case Sensors_NOK = 1
-    case Ready = 2
-    case Idle = 3
-    case Recording = 4
-    case Standby = 5
-    case Heating = 6
-	case Overheated = 7
+    case sensors_NOK = 1
+    case ready = 2
+    case idle = 3
+    case recording = 4
+    case standby = 5
+    case heating = 6
+	case overheated = 7
 	
 	func display() -> String {
 		switch self {
-		case .Undefined:
+		case .undefined:
 			return "Undef"
 		case .Init:
 			return "Init"
-		case .Sensors_NOK:
+		case .sensors_NOK:
 			return "Sensors NOK"
-		case .Ready:
+		case .ready:
 			return "Ready"
-		case .Idle:
+		case .idle:
 			return "Idle"
-		case .Recording:
+		case .recording:
 			return "Recording"
-		case .Standby:
+		case .standby:
 			return "Standby"
-		case .Heating:
+		case .heating:
 			return "Heating"
-		case .Overheated:
+		case .overheated:
 			return "Overheated"
 		}
 	}
@@ -97,21 +97,21 @@ public enum BCControllerState : BCStateID {
 
 public enum BCUserCommand : BCUserCommandID {
     // values not used by this App are commented
-    case None             = 0       // 1
+    case none             = 0       // 1
     //case Info_Help        = 0x1     // 2
     //case Info_Stat        = 0x2     // 3
     //case Info_Config      = 0x4     // 4
-    case Info_Log         = 0x8     // 5
-    case Config_Set_Value = 0x10    // 6   (16)
-    case Config_Swap_Ids  = 0x20    // 7   (32)
-    case Config_Clear_Ids = 0x40    // 8   (64)
-    case Config_Ack_Ids   = 0x80    // 9   (128)
-    case Config_Reset_All = 0x100   // 10  (256)
-    case Rec_On           = 0x200   // 11  (512)
-    case Rec_Off          = 0x400   // 12  (1024)
-    case Heat_On          = 0x800   // 13  (2048)
-    case Heat_Off         = 0x1000  // 14  (4096)
-	case Heat_Reset       = 0x2000  // 15  (8192)
+    case info_Log         = 0x8     // 5
+    case config_Set_Value = 0x10    // 6   (16)
+    case config_Swap_Ids  = 0x20    // 7   (32)
+    case config_Clear_Ids = 0x40    // 8   (64)
+    case config_Ack_Ids   = 0x80    // 9   (128)
+    case config_Reset_All = 0x100   // 10  (256)
+    case rec_On           = 0x200   // 11  (512)
+    case rec_Off          = 0x400   // 12  (1024)
+    case heat_On          = 0x800   // 13  (2048)
+    case heat_Off         = 0x1000  // 14  (4096)
+	case heat_Reset       = 0x2000  // 15  (8192)
 	
 }
 

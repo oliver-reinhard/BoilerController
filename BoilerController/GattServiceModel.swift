@@ -10,17 +10,17 @@ import Foundation
 import CoreBluetooth
 
 
-public protocol GattAttribute : class {
+public protocol GattAttribute: class {
 	
-	var characteristicUUID : CBUUID { get }
-	var container : GattService { get }
+	var characteristicUUID: CBUUID { get }
+	var container: GattService { get }
 	// only defined for modifiable attributes, else nil
-	var updateWithResponse : CBCharacteristicWriteType? { get }
+	var updateWithResponse: CBCharacteristicWriteType? { get }
 	
 	func extractValue(fromCharacteristic characteristic: CBCharacteristic)
 	func clearValue()
 	// only implemented (i.e invokable) for modifiable attributes:
-	func requestedValue(updateDidFail error : NSError?)
+	func requestedValue(updateDidFail error: NSError?)
 }
 
 
@@ -31,41 +31,41 @@ public enum GattServiceAvailability {
 }
 
 
-public protocol GattService : class, CBServiceObserver {
+public protocol GattService: class, CBServiceObserver {
 	
-	var serviceUUID : CBUUID { get }
-	var attributes : [ CBUUID : GattAttribute ] { get }
-	var availability : GattServiceAvailability { get }
-	var serviceObservers : [GattServiceObserver] { get }
-	var valueManager : CBCharacteristicValueManager? { get }
+	var serviceUUID: CBUUID { get }
+	var attributes: [ CBUUID: GattAttribute ] { get }
+	var availability: GattServiceAvailability { get }
+	var serviceObservers: [GattServiceObserver] { get }
+	var valueManager: CBCharacteristicValueManager? { get }
 	
-	func addAttribute(attribute : GattAttribute)
+	func addAttribute(attribute: GattAttribute)
 }
 
 
-public class GattReadAttribute<T> : GattAttribute {
+public class GattReadAttribute<T>: GattAttribute {
 	
-	public internal(set) var characteristicUUID : CBUUID
-	public internal(set) var container : GattService
+	public internal(set) var characteristicUUID: CBUUID
+	public internal(set) var container: GattService
 	// always returns nil for read-only attirbutes:
-	public internal(set) var updateWithResponse : CBCharacteristicWriteType? = nil
+	public internal(set) var updateWithResponse: CBCharacteristicWriteType? = nil
 	public var attributeBufferStartPos = 0
 	
-	public internal(set) var value : T? {
+	public internal(set) var value: T? {
 		didSet {
 			// execute on main thread so UI observers don't get into trouble:
-			dispatch_async(dispatch_get_main_queue(), {
+			DispatchQueue.main.async (execute: {
 				for obs in self.container.serviceObservers {
-					obs.attribute(self.container, valueDidChangeFor: self)
+					obs.attribute(service: self.container, valueDidChangeFor: self)
 				}
 			})
 		}
 	}
 	
-	init(characteristicUUID uuid : CBUUID, container : GattService) {
+	init(characteristicUUID uuid: CBUUID, container: GattService) {
 		self.characteristicUUID = uuid
 		self.container = container
-		container.addAttribute(self)
+		container.addAttribute(attribute: self)
 	}
 	
 	public final func extractValue(fromCharacteristic characteristic: CBCharacteristic) {
@@ -74,18 +74,18 @@ public class GattReadAttribute<T> : GattAttribute {
 			value = nil
 			return
 		}
-		value = extractValue(data)
+		value = extractValue(source: (data as NSData))
 	}
 	
-	func extractValue(source : NSData) -> T? {
-		return source.extract(attributeBufferStartPos)
+	func extractValue(source: NSData) -> T? {
+		return source.extract(startIndex: attributeBufferStartPos)
 	}
 	
 	public func clearValue() {
 		value = nil
 	}
 	
-	public func requestedValue(updateDidFail error : NSError?) {
+	public func requestedValue(updateDidFail error: NSError?) {
 		fatalError("Read-only attribute for \(characteristicUUID) cannot request value updates")
 	}
 }
@@ -94,63 +94,63 @@ public class GattReadAttribute<T> : GattAttribute {
  * A write-only attribute is still modeled as a read-also attribute. The service manager will make sure it doesn't
  * invoke read on characteristics that don't support it.
  */
-public class GattModifiableAttribute<T> : GattReadAttribute<T> {
+public class GattModifiableAttribute<T>: GattReadAttribute<T> {
 		
-	public var requestedValue : T? {
+	public var requestedValue: T? {
 		didSet {
 			if requestedValue != nil {
 				guard let valueManager = container.valueManager else {
 					fatalError("valueManager not set")
 				}
-				valueManager.updateValue(forAttribute: self, value: encode(requestedValue: requestedValue!), withResponse: updateWithResponse!)
+				valueManager.updateValue(forAttribute: self, value: encode(requestedValue: requestedValue!) as Data, withResponse: updateWithResponse!)
 			}
 		}
 	}
 	
-	init(characteristicUUID uuid: CBUUID, container : GattService, updateWithResponse: CBCharacteristicWriteType = .WithResponse) {
+	init(characteristicUUID uuid: CBUUID, container: GattService, updateWithResponse: CBCharacteristicWriteType = .withResponse) {
 		super.init(characteristicUUID: uuid, container: container)
 		self.updateWithResponse = updateWithResponse
 	}
 	
-	func encode(requestedValue value : T) -> NSData {
-		return NSData.fromValue(value)
+	func encode(requestedValue value: T) -> NSData {
+		return NSData.fromValue(value: value)
 	}
 	
-	public override func requestedValue(updateDidFail error : NSError?) {
+	public override func requestedValue(updateDidFail error: NSError?) {
 		// execute on main thread so UI observers don't get into trouble:
-		dispatch_async(dispatch_get_main_queue(), {
+		DispatchQueue.main.async {
 			for obs in self.container.serviceObservers {
-				obs.attribute(self.container, requestedValueDidFailFor: self)
-			}
-		})
-	}
-}
-
-
-public protocol GattServiceObserver : class {
-	func service(service : GattService, availabilityDidChange availability : GattServiceAvailability)
-	func attribute(service : GattService, valueDidChangeFor attribute : GattAttribute)
-	func attribute(service : GattService, requestedValueDidFailFor attribute : GattAttribute)
-}
-
-
-public class GattServiceProxy : GattService {
-	
-	public internal(set) var serviceUUID : CBUUID
-	public internal(set) var attributes = [ CBUUID : GattAttribute ]()
-	public internal(set) var availability : GattServiceAvailability = .Unavailable {
-		didSet {
-			if (availability != oldValue) {
-				// execute on main thread so UI observers don't get into trouble:
-				dispatch_async(dispatch_get_main_queue(), {
-					for obs in self.serviceObservers {
-						obs.service(self, availabilityDidChange: self.availability)
-					}
-				})
+				obs.attribute(service: self.container, requestedValueDidFailFor: self)
 			}
 		}
 	}
-	public var valueManager : CBCharacteristicValueManager?
+}
+
+
+public protocol GattServiceObserver: class {
+	func service(service: GattService, availabilityDidChange availability: GattServiceAvailability)
+	func attribute(service: GattService, valueDidChangeFor attribute: GattAttribute)
+	func attribute(service: GattService, requestedValueDidFailFor attribute: GattAttribute)
+}
+
+
+public class GattServiceProxy: GattService {
+	
+	public internal(set) var serviceUUID: CBUUID
+	public internal(set) var attributes = [ CBUUID: GattAttribute ]()
+	public internal(set) var availability: GattServiceAvailability = .Unavailable {
+		didSet {
+			if (availability != oldValue) {
+				// execute on main thread so UI observers don't get into trouble:
+				DispatchQueue.main.async {
+					for obs in self.serviceObservers {
+						obs.service(service: self, availabilityDidChange: self.availability)
+					}
+				}
+			}
+		}
+	}
+	public var valueManager: CBCharacteristicValueManager?
 	public internal(set) var serviceObservers = [GattServiceObserver]()
 	
 	init(serviceUUID uuid: CBUUID) {
@@ -158,12 +158,12 @@ public class GattServiceProxy : GattService {
 	}
 	
 	
-	public func addAttribute(attribute : GattAttribute) {
+	public func addAttribute(attribute: GattAttribute) {
 		attributes[attribute.characteristicUUID] = attribute
 	}
 	
 	
-	public func addServiceObserver(observer : GattServiceObserver) {
+	public func addServiceObserver(observer: GattServiceObserver) {
 		for obs in serviceObservers {
 			if obs === observer {
 				return
@@ -173,10 +173,10 @@ public class GattServiceProxy : GattService {
 	}
 	
 	
-	public func removeServiceObserver(observer : GattServiceObserver) {
-		for (index, value) in serviceObservers.enumerate() {
+	public func removeServiceObserver(observer: GattServiceObserver) {
+		for (index, value) in serviceObservers.enumerated() {
 			if value === observer {
-				serviceObservers.removeAtIndex(index)
+				serviceObservers.remove(at: index)
 				break
 			}
 		}
@@ -185,20 +185,20 @@ public class GattServiceProxy : GattService {
 	// MARK: CBServiceObserver
 	public func characteristic(valueUpdatedFor characteristic: CBCharacteristic)  {
 		// we are being notified about a characteristic we are aware of:
-		guard let attribute = attributes[characteristic.UUID] else {
+		guard let attribute = attributes[characteristic.uuid] else {
 			return
 		}
 		attribute.extractValue(fromCharacteristic: characteristic)
 	}
 	
-	public func service(availabilityDidChange cbAvailability : CBServiceAvailability) {
+	public func service(availabilityDidChange cbAvailability: CBServiceAvailability) {
 		switch cbAvailability {
-		case .Uninitialized, .ConnectionLost:
+		case .uninitialized, .connectionLost:
 			availability = .Unavailable
 			for (_, attribute) in attributes {
 				attribute.clearValue()
 			}
-		case .Available:
+		case .available:
 			availability = .Available
 		}
 	}
@@ -206,73 +206,76 @@ public class GattServiceProxy : GattService {
 
 
 extension NSData {
-	func  extract<T>(startIndex : Int = 0) -> T? {
-		let size = sizeof(T) - 1 // "-1" is due to the optional return type T? which occupies 1 byte more
-		let allocSize = self.length / size
+	func  extract<T>(startIndex: Int = 0) -> T? {
+		let size = MemoryLayout<T>.size - 1 // "-1" is due to the optional return type T? which occupies 1 byte more
 		if self.length >= startIndex + size {
-			let buf = UnsafeMutablePointer<T>.alloc(allocSize)
-			buf.initializeFrom(UnsafeMutablePointer<T>(self.bytes), count: 1)
+			let allocSize = self.length / size
+			let buf = UnsafeMutablePointer<T>.allocate(capacity: allocSize)
+			buf.initialize(from: self.bytes.assumingMemoryBound(to: T.self), count: 1)
 			let value = buf[0]
-			buf.dealloc(allocSize)
+			buf.deallocate(capacity: allocSize)
+			//self.getBytes(&value, length: size)
 			return value
 		}
 		return nil
 	}
 	
-	static func fromValue<T>(value : T) -> NSData {
-		let size = sizeof(T)
-		let buf = UnsafeMutablePointer<T>.alloc(size)
-		buf.initialize(value)
-		let result = NSData(bytes: buf, length: size)
-		buf.dealloc(size)
+	static func fromValue<T>(value: T) -> NSData {
+		let size = MemoryLayout<T>.size
+		var temp = value // NSData initializser only accepts mutable data
+		let result = NSData(bytes: &temp, length: size)
+		//let buf = UnsafeMutablePointer<T>.allocate(capacity: size)
+		//buf.initialize(to: value)
+		//let result = NSData(bytes: buf, length: size)
+		//buf.deallocate(capacity: size)
 		return result
 	}
 	/*
-	func extractUInt8(startIndex : Int = 0) -> UInt8 {
+	func extractUInt8(startIndex: Int = 0) -> UInt8 {
 		let len = 1
 		assert(self.length >= len)
 		let range = NSMakeRange(startIndex, startIndex + len)
-		var value : UInt8 = 0x00
+		var value: UInt8 = 0x00
 		self.getBytes(&value, range: range)
 		return value
 	}
-	func extractUInt16(startIndex : Int = 0) -> UInt16 {
+	func extractUInt16(startIndex: Int = 0) -> UInt16 {
 		let len = 1
 		assert(self.length >= len)
 		let range = NSMakeRange(startIndex, startIndex + len)
-		var value : UInt16 = 0x0000
+		var value: UInt16 = 0x0000
 		self.getBytes(&value, range: range)
 		return value
 	}
-	func extractUInt32(startIndex : Int = 0) -> UInt32 {
+	func extractUInt32(startIndex: Int = 0) -> UInt32 {
 		let len = 1
 		assert(self.length >= len)
 		let range = NSMakeRange(startIndex, startIndex + len)
-		var value : UInt32 = 0x00000000
+		var value: UInt32 = 0x00000000
 		self.getBytes(&value, range: range)
 		return value
 	}
-	func extractInt16(startIndex : Int = 0) -> Int16 {
+	func extractInt16(startIndex: Int = 0) -> Int16 {
 		let len = 1
 		assert(self.length >= len)
 		let range = NSMakeRange(startIndex, startIndex + len)
-		var value : Int16 = 0x0000
+		var value: Int16 = 0x0000
 		self.getBytes(&value, range: range)
 		return value
 	}
-	func extractInt32(startIndex : Int = 0) -> Int32 {
+	func extractInt32(startIndex: Int = 0) -> Int32 {
 		let len = 1
 		assert(self.length >= len)
 		let range = NSMakeRange(startIndex, startIndex + len)
-		var value : Int32 = 0x00000000
+		var value: Int32 = 0x00000000
 		self.getBytes(&value, range: range)
 		return value
 	}
-	func extractFloat(startIndex : Int = 0) -> Float {
+	func extractFloat(startIndex: Int = 0) -> Float {
 		let len = 1
 		assert(self.length >= len)
 		let range = NSMakeRange(startIndex, startIndex + len)
-		var value : Float = 0.0
+		var value: Float = 0.0
 		self.getBytes(&value, range: range)
 		return value
 	}

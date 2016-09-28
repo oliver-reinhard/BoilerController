@@ -30,49 +30,49 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	
 	
 	enum ButtonAction {
-		case None
-		case Rec_On
-		case Rec_Off
-		case Heat_On
-		case Heat_Off
-		case Heat_Reset
-		case Configuration
+		case none
+		case rec_On
+		case rec_Off
+		case heat_On
+		case heat_Off
+		case heat_Reset
+		case configuration
 		
 		func display() -> String {
 			switch self {
-			case None:
+			case .none:
 				return "N/A"
-			case Rec_On:
+			case .rec_On:
 				return "Recording On"
-			case Rec_Off:
+			case .rec_Off:
 				return "Recording Off"
-			case Heat_On:
+			case .heat_On:
 				return "Heat On"
-			case Heat_Off:
+			case .heat_Off:
 				return "Heat Off"
-			case Heat_Reset:
+			case .heat_Reset:
 				return "Reset Heat"
-			case .Configuration:
+			case .configuration:
 				return "Configuration"
 			}
 		}
 	}
 	
 	var leftButton : UIButton!
-	var leftButtonState =   (ButtonAction.None, BCUserCommand.None)
+	var leftButtonState =   (ButtonAction.none, BCUserCommand.none)
 	var rightButton : UIButton!
-	var rightButtonState = (ButtonAction.None, BCUserCommand.None)
+	var rightButtonState = (ButtonAction.none, BCUserCommand.none)
 	
 	required init?(coder aDecoder: NSCoder) {
 		stackViewController = StackViewController()
 		stackViewController.stackViewContainer.separatorViewFactory = StackViewContainer.createSeparatorViewFactory()
 		super.init(coder: aDecoder)
-		edgesForExtendedLayout = .None
+		edgesForExtendedLayout = UIRectEdge()
 	}
 	
 	override func loadView() {
-		view = UIView(frame: CGRectZero)
-		view.backgroundColor = .whiteColor()
+		view = UIView(frame: CGRect.zero)
+		view.backgroundColor = .white
 	}
 	
     override func viewDidLoad() {
@@ -81,12 +81,12 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		guard controllerModel != nil else {
 			fatalError("Expected ControllerModel to be set")
 		}
-		controllerModel.addServiceObserver(self)
+		controllerModel.addServiceObserver(observer: self)
 		
-		let titleLabel = UILabel(frame: CGRectZero)
+		let titleLabel = UILabel(frame: CGRect.zero)
 		titleLabel.text = "Controller"
-		titleLabel.textColor = UIColor.blackColor()
-		titleLabel.font = UIFont.boldSystemFontOfSize(18)
+		titleLabel.textColor = UIColor.black
+		titleLabel.font = UIFont.boldSystemFont(ofSize: 18)
 		view.addSubview(titleLabel)
 
 		ambientTemp = LabeledDataFieldController(labelText: "Ambient Temperature")
@@ -102,10 +102,10 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		targetTemp.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(MainViewController.didTapTargetTemp)))
 		updateTargetTemp()
 		
-		targetTempPicker = UIPickerView(frame: CGRectZero)
+		targetTempPicker = UIPickerView(frame: CGRect.zero)
 		targetTempPicker.dataSource = targetTempPickerHandler
 		targetTempPicker.delegate = targetTempPickerHandler
-		targetTempPicker.hidden = true
+		targetTempPicker.isHidden = true
 		targetTempPickerHandler.controllerModel = controllerModel
 
 		state = LabeledDataFieldController(labelText: "State")
@@ -127,16 +127,16 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		view.addSubview(stackViewController.view)
 		addChildViewController(stackViewController)
 		//stackViewController.view.activateSuperviewHuggingConstraints()
-		stackViewController.didMoveToParentViewController(self)
+		stackViewController.didMove(toParentViewController: self)
 		
-		leftButton = UIButton(type: .System)
+		leftButton = UIButton(type: .system)
 		leftButton.titleLabel!.font = titleLabel.font
-		leftButton.addTarget(self, action: #selector(MainViewController.leftButtonPressed(_:)), forControlEvents: .TouchUpInside)
+		leftButton.addTarget(self, action: #selector(MainViewController.leftButtonPressed(_:)), for: .touchUpInside)
 		view.addSubview(leftButton)
 		
-		rightButton = UIButton(type: .System)
+		rightButton = UIButton(type: .system)
 		rightButton.titleLabel!.font = titleLabel.font
-		rightButton.addTarget(self, action: #selector(MainViewController.rightButtonPressed(_:)), forControlEvents: .TouchUpInside)
+		rightButton.addTarget(self, action: #selector(MainViewController.rightButtonPressed(_:)), for: .touchUpInside)
 		view.addSubview(rightButton)
 		updateAcceptedCommands()
 		
@@ -146,26 +146,26 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		let padding = UIEdgeInsetsMake(30, 15, 25, 15)
 		let spacing = 5
 		
-		titleLabel.snp_makeConstraints { (make) -> Void in
-			make.top.equalTo(view.snp_top).offset(padding.top)
-			make.centerX.equalTo(view.snp_centerX)
+		titleLabel.snp.makeConstraints { (make) -> Void in
+			make.top.equalTo(view.snp.top).offset(padding.top)
+			make.centerX.equalTo(view.snp.centerX)
 		}
 
-		leftButton.snp_makeConstraints { (make) -> Void in
-			make.left.equalTo(view.snp_left).offset(padding.left)
-			make.bottom.equalTo(view.snp_bottom).offset(-padding.bottom)
+		leftButton.snp.makeConstraints { (make) -> Void in
+			make.left.equalTo(view.snp.left).offset(padding.left)
+			make.bottom.equalTo(view.snp.bottom).offset(-padding.bottom)
 		}
 		
-		rightButton.snp_makeConstraints { (make) -> Void in
-			make.right.equalTo(view.snp_right).offset(-padding.right)
-			make.centerY.equalTo(leftButton.snp_centerY)
+		rightButton.snp.makeConstraints { (make) -> Void in
+			make.right.equalTo(view.snp.right).offset(-padding.right)
+			make.centerY.equalTo(leftButton.snp.centerY)
 		}
 		
-		stackViewController.view.snp_makeConstraints { (make) -> Void in
-			make.top.equalTo(titleLabel.snp_bottom).offset(spacing)
-			make.left.equalTo(view.snp_left)
-			make.bottom.equalTo(leftButton.snp_top).offset(-spacing)
-			make.right.equalTo(view.snp_right)
+		stackViewController.view.snp.makeConstraints { (make) -> Void in
+			make.top.equalTo(titleLabel.snp.bottom).offset(spacing)
+			make.left.equalTo(view.snp.left)
+			make.bottom.equalTo(leftButton.snp.top).offset(-spacing)
+			make.right.equalTo(view.snp.right)
 		}
 	}
 
@@ -175,62 +175,62 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
     }
 	
 	func didTapTargetTemp() {
-		UIView.animateWithDuration(0.5) { () -> Void in
+		UIView.animate(withDuration: 0.5, animations: { () -> Void in
 			let picker = self.targetTempPicker
 			// only show picker view if target temp is not nil
-			if picker.hidden && self.controllerModel.targetTemperature.value != nil {
-				self.stackViewController.insertItem(picker, atIndex: 3)
-				picker.hidden = false
-			} else if !picker.hidden {
-				self.stackViewController.removeItem(picker)
-				picker.hidden = true
+			if (picker?.isHidden)! && self.controllerModel.targetTemperature.value != nil {
+				self.stackViewController.insertItem(picker!, atIndex: 3)
+				picker?.isHidden = false
+			} else if !(picker?.isHidden)! {
+				self.stackViewController.removeItem(picker!)
+				picker?.isHidden = true
 			}
-		}
+		}) 
 	}
 	
-	func leftButtonPressed(sender: UIButton!) {
-		if leftButtonState.1 != .None {
+	func leftButtonPressed(_ sender: UIButton!) {
+		if leftButtonState.1 != .none {
 			controllerModel.userRequest.requestedValue = leftButtonState.1.rawValue
 			//print("Left: \(leftButtonState.1)")
 		}
     }
 	
-	func rightButtonPressed(sender: UIButton!) {
-		if rightButtonState.1 != .None {
+	func rightButtonPressed(_ sender: UIButton!) {
+		if rightButtonState.1 != .none {
 			controllerModel.userRequest.requestedValue = rightButtonState.1.rawValue
         	//print("Right: \(rightButtonState.1)")
 		}
 	}
 	
-	private func evaluateUserCommandsForLeftButton() -> (ButtonAction, BCUserCommand) {
+	fileprivate func evaluateUserCommandsForLeftButton() -> (ButtonAction, BCUserCommand) {
 		if let userCommands = controllerModel.acceptedUserCmds.value {
-			if userCommands & BCUserCommand.Rec_On.rawValue > 0 {
-				return (.Rec_On, BCUserCommand.Rec_On)
+			if userCommands & BCUserCommand.rec_On.rawValue > 0 {
+				return (.rec_On, BCUserCommand.rec_On)
 				
-			} else if userCommands & BCUserCommand.Rec_Off.rawValue > 0 {
-				return (.Rec_Off, BCUserCommand.Rec_Off)
+			} else if userCommands & BCUserCommand.rec_Off.rawValue > 0 {
+				return (.rec_Off, BCUserCommand.rec_Off)
 				
-			} else if userCommands & BCUserCommand.Heat_Reset.rawValue > 0 {
-				return (.Heat_Reset, BCUserCommand.Heat_Reset)
+			} else if userCommands & BCUserCommand.heat_Reset.rawValue > 0 {
+				return (.heat_Reset, BCUserCommand.heat_Reset)
 			}
 		}
-		return (.None, BCUserCommand.None)
+		return (.none, BCUserCommand.none)
 		
 	}
 	
-	private func evaluateUserCommandsForRightButton() -> (ButtonAction, BCUserCommand) {
+	fileprivate func evaluateUserCommandsForRightButton() -> (ButtonAction, BCUserCommand) {
 		if let userCommands = controllerModel.acceptedUserCmds.value {
-			if userCommands & BCUserCommand.Heat_On.rawValue > 0 {
-				return (.Heat_On, BCUserCommand.Heat_On)
+			if userCommands & BCUserCommand.heat_On.rawValue > 0 {
+				return (.heat_On, BCUserCommand.heat_On)
 				
-			} else if userCommands & BCUserCommand.Heat_Off.rawValue > 0 {
-				return (.Heat_Off, BCUserCommand.Heat_Off)
+			} else if userCommands & BCUserCommand.heat_Off.rawValue > 0 {
+				return (.heat_Off, BCUserCommand.heat_Off)
 				
 			} else if userCommands.containsConfigurationCommand() {
-				return (.Configuration, BCUserCommand.None)
+				return (.configuration, BCUserCommand.none)
 			}
 		}
-		return (.None, BCUserCommand.None)
+		return (.none, BCUserCommand.none)
 	}
 	
 	
@@ -241,21 +241,21 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	
 	func attribute(service : GattService, valueDidChangeFor attribute : GattAttribute) {
 		let model = self.controllerModel
-		if attribute === model.state {
+		if attribute === model?.state {
 			self.updateState()
-		} else if attribute === model.timeInState {
+		} else if attribute === model?.timeInState {
 			self.updateTimeInState()
-		} else if attribute === model.timeHeated {
+		} else if attribute === model?.timeHeated {
 			self.updateTimeHeated()
-		} else if attribute === model.timeToGo {
+		} else if attribute === model?.timeToGo {
 			self.updateTimeToGo()
-		} else if attribute === model.acceptedUserCmds {
+		} else if attribute === model?.acceptedUserCmds {
 			self.updateAcceptedCommands()
-		} else if attribute === model.waterSensor {
+		} else if attribute === model?.waterSensor {
 			self.updateWaterSensor()
-		} else if attribute === model.ambientSensor {
+		} else if attribute === model?.ambientSensor {
 			self.updateAmbientSensor()
-		} else if attribute === model.targetTemperature {
+		} else if attribute === model?.targetTemperature {
 			self.updateTargetTemp()
 		} else {
 			print("Unhandled attribute: \(attribute.characteristicUUID)")
@@ -269,7 +269,7 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 
 	// MARK: DISPLAY utility functions
 	
-	private func formatTime(secs : BCSeconds?) -> String {
+	fileprivate func formatTime(_ secs : BCSeconds?) -> String {
 		guard secs != nil && secs != UndefinedBCSeconds else {
 			return "-:--:--"
 		}
@@ -284,16 +284,16 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		if (minPart < 10) {
 			result.append(zero)
 		}
-		result.appendContentsOf(minPart.description)
+		result.append(minPart.description)
 		result.append(separator)
 		if (secPart < 10) {
 			result.append(zero)
 		}
-		result.appendContentsOf(secPart.description)
+		result.append(secPart.description)
 		return result
 	}
 	
-	private func formatTemperature(temperature : Double?, printDecimal : Bool) -> String {
+	fileprivate func formatTemperature(_ temperature : Double?, printDecimal : Bool) -> String {
 		let unit = "°C"
 		guard temperature != nil else {
 			return "--" + unit
@@ -310,7 +310,7 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 	
 	// MARK: FIELD updates
 	
-	private func updateState() {
+	fileprivate func updateState() {
 		guard let value = controllerModel.state.value else {
 			state.value = "--"
 			return
@@ -318,56 +318,56 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		state.value = value.display()
 	}
 	
-	private func updateTimeInState() {
+	fileprivate func updateTimeInState() {
 		timeInState.value = formatTime(controllerModel.timeInState.value)
 	}
 	
-	private func updateTimeHeated() {
+	fileprivate func updateTimeHeated() {
 		timeHeated.value = formatTime(controllerModel.timeHeated.value)
 	}
 	
-	private func updateTimeToGo() {
+	fileprivate func updateTimeToGo() {
 		let seconds = controllerModel.timeToGo.value
 		timeToGo.value = formatTime(seconds)
 	}
 	
-	private func updateAcceptedCommands() {
+	fileprivate func updateAcceptedCommands() {
 		leftButtonState = evaluateUserCommandsForLeftButton()
-		leftButton.setTitle(leftButtonState.0.display(), forState: .Normal)
-		leftButton.enabled = leftButtonState.0 != .None
+		leftButton.setTitle(leftButtonState.0.display(), for: UIControlState())
+		leftButton.isEnabled = leftButtonState.0 != .none
 		
 		rightButtonState = evaluateUserCommandsForRightButton()
-		rightButton.setTitle(rightButtonState.0.display(), forState: .Normal)
-		rightButton.enabled = rightButtonState.0 != .None
+		rightButton.setTitle(rightButtonState.0.display(), for: UIControlState())
+		rightButton.isEnabled = rightButtonState.0 != .none
 		
-		targetTempPicker.userInteractionEnabled = controllerModel.canUpdateConfigValues
+		targetTempPicker.isUserInteractionEnabled = controllerModel.canUpdateConfigValues
 	}
 	
-	private func updateAmbientSensor() {
+	fileprivate func updateAmbientSensor() {
 		guard let sensor = controllerModel.ambientSensor.value else {
 			ambientTemp.value = formatTemperature(nil, printDecimal: true)
 			return
 		}
-		if sensor.status == .OK {
+		if sensor.status == .ok {
 			ambientTemp.value = formatTemperature(sensor.temperature, printDecimal: true)
 		} else {
 			ambientTemp.value = sensor.status.display()
 		}
 	}
 	
-	private func updateWaterSensor() {
+	fileprivate func updateWaterSensor() {
 		guard let sensor = controllerModel.waterSensor.value else {
 			waterTemp.value = formatTemperature(nil, printDecimal: true)
 			return
 		}
-		if sensor.status == .OK {
+		if sensor.status == .ok {
 			waterTemp.value = formatTemperature(sensor.temperature, printDecimal: true)
 		} else {
 			waterTemp.value = sensor.status.display()
 		}
 	}
 	
-	private func updateTargetTemp() {
+	fileprivate func updateTargetTemp() {
 		let value = controllerModel.targetTemperature.value
 		targetTemp.value = formatTemperature(value, printDecimal: false)
 		guard value != nil && targetTempPicker != nil else {
@@ -376,7 +376,7 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		let intValue = Int(value!)
 		if intValue >= MainViewController.minTargetTemp && intValue <= MainViewController.maxTargetTemp {
 			let index = intValue - MainViewController.minTargetTemp
-			targetTempPicker.selectRow(index, inComponent: 0, animated: !targetTempPicker.hidden)
+			targetTempPicker.selectRow(index, inComponent: 0, animated: !targetTempPicker.isHidden)
 		}
 	}
 	
@@ -389,19 +389,19 @@ class MainViewController: UIViewController, ControllerModelContext, GattServiceO
 		
 		var controllerModel : ControllerModel?
 		
-		func numberOfComponentsInPickerView(pickerView: UIPickerView) -> Int {
+		func numberOfComponents(in pickerView: UIPickerView) -> Int {
 			return 1
 		}
-		func pickerView(pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+		func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
 			return TargetTempPickerHandler.numberOfRows
 		}
-		func pickerView(pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+		func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
 			guard row < TargetTempPickerHandler.numberOfRows else {
 				fatalError("Row index out of bounds: \(row)")
 			}
 			return String(MainViewController.minTargetTemp + row) + "°C"
 		}
-		func pickerView(pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+		func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
 			//print("Row \(row) selected")
 			guard controllerModel != nil else {
 				return

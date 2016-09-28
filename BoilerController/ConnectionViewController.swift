@@ -15,7 +15,7 @@ class ConnectionViewController: UIViewController, ControllerModelContext, CBAvai
 	
 	
 	var controllerModel : ControllerModel!
-	private var cbPeripheralDiscovery : CBPeripheralDiscovery!
+	fileprivate var cbPeripheralDiscovery : CBPeripheralDiscovery!
 	
     @IBOutlet weak var startStopScan: UIButton!
 	@IBOutlet weak var deviceName: UITextField!
@@ -25,18 +25,18 @@ class ConnectionViewController: UIViewController, ControllerModelContext, CBAvai
     override func viewDidLoad() {
         super.viewDidLoad()
 		
-        startStopScan.snp_makeConstraints { (make) -> Void in
+        startStopScan.snp.makeConstraints { (make) -> Void in
 			make.top.equalTo(self.view).inset(100)
             make.centerX.equalTo(self.view)
         }
 		
-		deviceName.snp_makeConstraints { (make) -> Void in
-			make.top.equalTo(startStopScan.snp_bottom).offset(30)
+		deviceName.snp.makeConstraints { (make) -> Void in
+			make.top.equalTo(startStopScan.snp.bottom).offset(30)
 			make.centerX.equalTo(self.view)
 		}
 		
-		connect.snp_makeConstraints { (make) -> Void in
-			make.top.equalTo(deviceName.snp_bottom).offset(30)
+		connect.snp.makeConstraints { (make) -> Void in
+			make.top.equalTo(deviceName.snp.bottom).offset(30)
 			make.centerX.equalTo(self.view)
 		}
 		
@@ -53,38 +53,38 @@ class ConnectionViewController: UIViewController, ControllerModelContext, CBAvai
     }
     
 	
-    @IBAction func scanButtonPressed(sender: UIButton) {
-		if cbPeripheralDiscovery.state == .Idle || cbPeripheralDiscovery.state == .DiscoveredPeripherals {
+    @IBAction func scanButtonPressed(_ sender: UIButton) {
+		if cbPeripheralDiscovery.state == .idle || cbPeripheralDiscovery.state == .discoveredPeripherals {
 			cbPeripheralDiscovery.startScan()
-		} else if cbPeripheralDiscovery.state == .Scanning {
+		} else if cbPeripheralDiscovery.state == .scanning {
 			cbPeripheralDiscovery.stopScan()
 		}
     }
 	
-	@IBAction func connectButtonPressed(sender: UIButton) {
-		if cbPeripheralDiscovery.state == .DiscoveredPeripherals {
+	@IBAction func connectButtonPressed(_ sender: UIButton) {
+		if cbPeripheralDiscovery.state == .discoveredPeripherals {
 			cbPeripheralDiscovery.connectToPeripheral()
-		} else if cbPeripheralDiscovery.state == .Connected {
+		} else if cbPeripheralDiscovery.state == .connected {
 			cbPeripheralDiscovery.disconnectFromPeripheral()
 		}
 	}
 	
-	func peripheralDiscovery(discovery : CBPeripheralDiscovery, newState state : CBPeripheralDiscoveryState) {
+	func peripheralDiscovery(_ discovery : CBPeripheralDiscovery, newState state : CBPeripheralDiscoveryState) {
 		if discovery == cbPeripheralDiscovery {
 			
-			startStopScan.enabled = state == .Idle || state == .Scanning || state == .DiscoveredPeripherals
-			let scanTitle =  state == .Scanning ? "Stop" : "Scan"
-			startStopScan.setTitle(scanTitle, forState: .Normal)
+			startStopScan.isEnabled = state == .idle || state == .scanning || state == .discoveredPeripherals
+			let scanTitle =  state == .scanning ? "Stop" : "Scan"
+			startStopScan.setTitle(scanTitle, for: UIControlState())
 			
-			if state == .DiscoveredPeripherals || state == .Connected {
+			if state == .discoveredPeripherals || state == .connected {
 				deviceName.text = cbPeripheralDiscovery.peripheral?.name
 			} else {
 				deviceName.text = "No device"
 			}
 			
-			connect.enabled = state == .DiscoveredPeripherals || state == .Connected
-			let connectTitle =  state == .DiscoveredPeripherals ? "Connect" : "Disconnect"
-			connect.setTitle(connectTitle, forState: .Normal)
+			connect.isEnabled = state == .discoveredPeripherals || state == .connected
+			let connectTitle =  state == .discoveredPeripherals ? "Connect" : "Disconnect"
+			connect.setTitle(connectTitle, for: UIControlState())
 		}
 	}
 

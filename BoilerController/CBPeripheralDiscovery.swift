@@ -14,34 +14,34 @@ import UIKit
 
 public enum CBPeripheralDiscoveryState {
 	
-	case Disabled
-	case Idle
-	case Scanning
-	case DiscoveredPeripherals
-	case Connected
+	case disabled
+	case idle
+	case scanning
+	case discoveredPeripherals
+	case connected
 }
 
 public protocol CBAvailabilityObserver : class {
-	func peripheralDiscovery(discovery : CBPeripheralDiscovery, newState state : CBPeripheralDiscoveryState)
+	func peripheralDiscovery(_ discovery : CBPeripheralDiscovery, newState state : CBPeripheralDiscoveryState)
 }
 
 
-public class CBPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
+open class CBPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 	
-	public private(set) var advertisingUUID : CBUUID!
- 	private var serviceProxies = [CBUUID : GattServiceProxy]()
+	open fileprivate(set) var advertisingUUID : CBUUID!
+ 	fileprivate var serviceProxies = [CBUUID : GattServiceProxy]()
 	
-	private var serviceManager: CBServiceManager?
-	private var centralManager : CBCentralManager!
-	public private(set)  var peripheral : CBPeripheral?
+	fileprivate var serviceManager: CBServiceManager?
+	fileprivate var centralManager : CBCentralManager!
+	open fileprivate(set)  var peripheral : CBPeripheral?
 	
-	private var availabilityObservers = [CBAvailabilityObserver]()
+	fileprivate var availabilityObservers = [CBAvailabilityObserver]()
 	
-	public private(set) var state = CBPeripheralDiscoveryState.Disabled {
+	open fileprivate(set) var state = CBPeripheralDiscoveryState.disabled {
 		didSet {
 			print("CentralManager: is \(state)")
 			// execute on main thread so UI observers don't get into trouble:
-			dispatch_async(dispatch_get_main_queue(), {
+			DispatchQueue.main.async(execute: {
 				for obs in self.availabilityObservers {
 					obs.peripheralDiscovery(self, newState: self.state)
 				}
@@ -53,14 +53,14 @@ public class CBPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 		super.init()
 		self.advertisingUUID = advertisingUUID
 		
-		let centralQueue = dispatch_queue_create("boiler-controller", DISPATCH_QUEUE_SERIAL)
+		let centralQueue = DispatchQueue(label: "boiler-controller", attributes: [])
 		centralManager = CBCentralManager(delegate: self, queue: centralQueue)
 	}
 	
 	
-	public func addServiceProxy(proxy : GattServiceProxy) {
+	open func addServiceProxy(_ proxy : GattServiceProxy) {
 		serviceProxies[proxy.serviceUUID] = proxy
-		proxy.service(availabilityDidChange: .Uninitialized)
+		proxy.service(availabilityDidChange: .uninitialized)
 	}
 	
 	/*
@@ -71,36 +71,36 @@ public class CBPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 	*/
 	
 	
-	public func startScan() {
-		if state == .Idle || state == .DiscoveredPeripherals {
-			reset(.Scanning)
-			centralManager?.scanForPeripheralsWithServices([advertisingUUID], options: nil)
+	open func startScan() {
+		if state == .idle || state == .discoveredPeripherals {
+			reset(.scanning)
+			centralManager?.scanForPeripherals(withServices: [advertisingUUID], options: nil)
 			print("\nCentralManager: Started Scan for advertising UUID \(advertisingUUID)")
 		}
 	}
 	
 	
-	public func stopScan() {
-		if state == .Scanning {
+	open func stopScan() {
+		if state == .scanning {
 			centralManager?.stopScan()
 			print("\nCentralManager: Stopped Scan, isScanning = \(centralManager.isScanning)")
-			state = peripheral == nil ? .Idle : .DiscoveredPeripherals
+			state = peripheral == nil ? .idle : .discoveredPeripherals
 		}
 	}
 	
-	public func connectToPeripheral() {
-		if state == .DiscoveredPeripherals {
-			centralManager.connectPeripheral(peripheral!, options: nil)
+	open func connectToPeripheral() {
+		if state == .discoveredPeripherals {
+			centralManager.connect(peripheral!, options: nil)
 		}
 	}
 	
-	public func disconnectFromPeripheral() {
-		if state == .Connected {
+	open func disconnectFromPeripheral() {
+		if state == .connected {
 			centralManager.cancelPeripheralConnection(peripheral!)
 		}
 	}
 	
-	public func addAvailabilityObserver(observer : CBAvailabilityObserver) {
+	open func addAvailabilityObserver(_ observer : CBAvailabilityObserver) {
 		for obs in availabilityObservers {
 			if obs === observer {
 				return
@@ -109,16 +109,16 @@ public class CBPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 		availabilityObservers.append(observer)
 	}
 	
-	public func removeAvailabilityObserver(observer : CBAvailabilityObserver) {
-		for (index, value) in availabilityObservers.enumerate() {
+	open func removeAvailabilityObserver(_ observer : CBAvailabilityObserver) {
+		for (index, value) in availabilityObservers.enumerated() {
 			if value === observer {
-				availabilityObservers.removeAtIndex(index)
+				availabilityObservers.remove(at: index)
 				break
 			}
 		}
 	}
 	
-	private func reset(state : CBPeripheralDiscoveryState) {
+	fileprivate func reset(_ state : CBPeripheralDiscoveryState) {
 		self.peripheral = nil
 		self.serviceManager?.reset()
 		self.state = state
@@ -127,46 +127,46 @@ public class CBPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 	
 	// MARK: - CBCentralManagerDelegate
 	
-	public func centralManagerDidUpdateState(central: CBCentralManager) {
+	open func centralManagerDidUpdateState(_ central: CBCentralManager) {
 		switch (central.state) {
 			
-		case CBCentralManagerState.Unknown:
+		case .unknown:
 			// "The current state of the central manager is unknown; an update is imminent." => Wait for another event
-			state = .Disabled
+			state = .disabled
 			
-		case CBCentralManagerState.Resetting:
+		case .resetting:
 			// "The connection with the system service was momentarily lost; an update is imminent." => Reset and wait for another event
-			self.reset(.Disabled)
+			self.reset(.disabled)
 			
-		case CBCentralManagerState.Unsupported:
+		case .unsupported:
 			// "The platform does not support Bluetooth low energy." => This is the end: indicate to user that the iOS device
 			// does not support BLE.
-			state = .Disabled
+			state = .disabled
 			
-		case CBCentralManagerState.Unauthorized:
+		case .unauthorized:
 			// "The app is not authorized to use Bluetooth low energy." => Tell user to turn on Bluetooth (iOS actually does generate
 			// this notification to the user => No need to do anything.
-			state = .Disabled
+			state = .disabled
 			
-		case CBCentralManagerState.PoweredOff:
+		case .poweredOff:
 			// "Bluetooth is currently powered off." (generated by iOS if user turns off Bluetooth) => Reset and wait for 
 			// Bluetooth to become available again
-			self.reset(.Disabled)
+			self.reset(.disabled)
 			
-		case CBCentralManagerState.PoweredOn:
+		case .poweredOn:
 			// "Bluetooth is currently powered on and available to use." (generated by iOS when app starts or when user turns on Bluetooth)
-			state = .Idle
+			state = .idle
 		}
 	}
 	
 	
-	public func centralManager(central: CBCentralManager, didDiscoverPeripheral peripheral: CBPeripheral, advertisementData: [String : AnyObject], RSSI: NSNumber) {
+	open func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
 		
 		//
 		// For a given scan, this method is called once per device that is being detected.
 		// At this time we can handle just a single one and we'll give preference to the first one discovered.
 		//
-		if self.peripheral == nil || self.peripheral?.state == CBPeripheralState.Disconnected {
+		if self.peripheral == nil || self.peripheral?.state == CBPeripheralState.disconnected {
 			print("CentralManager: discovered peripheral \(peripheral.name!), \(peripheral.identifier)")
 			self.peripheral = peripheral
 			self.serviceManager?.reset()
@@ -177,13 +177,13 @@ public class CBPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 	}
 	
 	
-	public func centralManager(central: CBCentralManager, didConnectPeripheral peripheral: CBPeripheral) {
+	open func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
 		
 		guard peripheral == self.peripheral else {  // we're only dealing with 1 peripheral here
 			return
 		}
 		print("CentralManager: connected to peripheral \(peripheral.name!), isScanning = \(centralManager.isScanning)")
-		state = .Connected
+		state = .connected
 		
 		// auto-discover services:
 		if (serviceManager == nil) {
@@ -193,29 +193,29 @@ public class CBPeripheralDiscovery: NSObject, CBCentralManagerDelegate {
 	}
 	
 	
-	public func centralManager(central: CBCentralManager, didFailToConnectPeripheral peripheral: CBPeripheral, error: NSError?) {
+	open func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
 		
 		guard peripheral == self.peripheral else {	// we're only dealing with 1 peripheral here
 			return
 		}
 		print("CentralManager: failed to connect to peripheral \(peripheral.name!), isScanning = \(centralManager.isScanning)")
-		reset(.Idle)
+		reset(.idle)
 		startScan()
 	}
 	
 	
-	public func centralManager(central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: NSError?) {
+	open func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
 		
 		guard peripheral == self.peripheral else {	// we're only dealing with 1 peripheral here
 			return
 		}
 		print("CentralManager: disconnected from peripheral \(peripheral.name!), isScanning = \(centralManager.isScanning)")
-		reset(.Idle)
+		reset(.idle)
 		startScan()
 	}
 	
 	
-	public func centralManager(central: CBCentralManager, willRestoreState dict: [String : AnyObject]) {
+	open func centralManager(_ central: CBCentralManager, willRestoreState dict: [String : Any]) {
 		print("CentralManager: will restore state, isScanning = \(centralManager.isScanning)")
 	}
 }

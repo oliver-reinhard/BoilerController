@@ -10,7 +10,7 @@ import UIKit
 
 class LabeledDataFieldController: UIViewController {
 	
-    private let labelText: String
+    fileprivate let labelText: String
     
     init(labelText: String) {
         self.labelText = labelText
